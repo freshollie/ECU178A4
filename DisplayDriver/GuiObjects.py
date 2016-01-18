@@ -288,7 +288,7 @@ class Rectangle(Polygon):
         Initialise the rectangle
         '''
         self.size=size
-        self.centered=True
+        self.centered=centered
         self.pos=pos
         Polygon.__init__(self,pos,points=self.makePoints(),colour=colour,border=border)
 
