@@ -11,7 +11,7 @@ class Debug(object):
         self.count=0
         self.taskId=None
         self.toggled=True
-        self.rect=Rectangle(pos,[170,80],colour=background,border=0)
+        self.rect=Rectangle(pos, [170,80], colour=background, border=0, centered = False )
         self.text=[]
         for i in range(5):
             self.text.append(OnscreenText('',Point(pos[0],pos[1]+(i*13)),colour=textColour,size=20))

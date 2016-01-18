@@ -64,6 +64,18 @@ class GuiObjectBase(object):
         '''
         return self.pos.getPoints()
 
+    def setRotation(self,angle):
+        '''
+        Sets the rotation of the object
+        '''
+        self.rotation=angle
+
+    def getRotation(self):
+        '''
+        Gets the rotation of the object
+        '''
+        return self.rotation
+
     def setX(self,x):
         '''
         Sets the objects X Value
@@ -146,18 +158,6 @@ class OnscreenText(GuiObjectBase):
     def genFont(self):
         self.font=pygame.font.Font(self.fontName, self.size)
 
-    def setRotation(self,angle):
-        '''
-        Sets the rotation of the object
-        '''
-        self.rotation=angle
-
-    def getRotation(self):
-        '''
-        Gets the rotation of the object
-        '''
-        return self.rotation
-
     def setText(self,text):
         '''
         Sets the text of the object
@@ -216,7 +216,7 @@ class Polygon(GuiObjectBase):
         '''
         
         self.setPoints(points)
-        image=pygame.draw.polygon(pygame.Surface(RES),self.colour,self.points,self.border)
+        image = pygame.draw.polygon(pygame.Surface(RES),self.colour,self.points,self.border)
         self.pos=Point(image.center)
 
     def setColour(self,colour):
@@ -244,6 +244,10 @@ class Polygon(GuiObjectBase):
         '''
         return self.points[:]
 
+    def setRotation(self,angle):
+        self.rotation = angle
+        self.setAngle(angle)
+
     def setAngle(self,angle):
         '''
         Sets the angle of the polygon
@@ -258,8 +262,8 @@ class Polygon(GuiObjectBase):
 
     def rotatePoints(self,theta):
         '''
-        Rotates all points about the centre point
-        by theta
+            Rotates all points about the centre point
+            by theta
         '''
         points=[]
         for point in self.points:
@@ -268,8 +272,8 @@ class Polygon(GuiObjectBase):
         
     def draw(self,screen):
         '''
-	Draws the polygon
-	'''
+	        Draws the polygon
+        '''
         if self.points:
             pygame.draw.polygon(screen,self.colour,self.points,self.border)
             
@@ -279,7 +283,7 @@ class Rectangle(Polygon):
     of specific size
     '''
 
-    def __init__(self,pos,size,colour=BLACK,border=2,centered=True):
+    def __init__(self,pos,size,colour=BLACK,border=0,centered=True):
         '''
         Initialise the rectangle
         '''
@@ -298,11 +302,19 @@ class Rectangle(Polygon):
         '''
         Return all the generated corner points
         '''
-        return [Point(self.pos),
-                Point(self.pos[0]+self.size[0],self.pos[1]),
-                Point(self.pos[0]+self.size[0],self.pos[1]+self.size[1]),
-                Point(self.pos[0],self.pos[1]+self.size[1])
-                ]
+        if self.centered:
+            return [Point(self.pos[0]-self.size[0]/2,self.pos[1]-self.size[1]/2),
+                    Point(self.pos[0]+self.size[0]/2,self.pos[1]-self.size[1]/2),
+                    Point(self.pos[0]+self.size[0]/2,self.pos[1]+self.size[1]/2),
+                    Point(self.pos[0]-self.size[0]/2,self.pos[1]+self.size[1]/2)
+                    ]
+        else:
+            return [Point(self.pos),
+                    Point(self.pos[0]+self.size[0], self.pos[1]),
+                    Point(self.pos[0]+self.size[0], self.pos[1]+self.size[1]),
+                    Point(self.pos[0], self.pos[1]+self.size[1])
+                    ]
+
  
 class Border(Rectangle):
     '''
