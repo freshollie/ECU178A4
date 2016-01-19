@@ -163,7 +163,11 @@ class OnscreenText(GuiObjectBase):
         Sets the text of the object
         '''
         self.text=text
-        self.renderedText=self.font.render(self.text,1,self.colour)
+        self.renderedText=self.font.render(self.text, 1, self.colour)
+
+    def setColour(self, colour):
+        self.colour = colour
+        self.setText(self.text)
         
     def draw(self,screen):
         '''
@@ -185,6 +189,7 @@ class Polygon(GuiObjectBase):
         '''
         GuiObjectBase.__init__(self,pos)
         self.colour=colour
+        self.image = None
         self.border=border
         if points:
             self.newPoints(points)
@@ -217,6 +222,7 @@ class Polygon(GuiObjectBase):
         
         self.setPoints(points)
         image = pygame.draw.polygon(pygame.Surface(RES),self.colour,self.points,self.border)
+        self.image = image
         self.pos=Point(image.center)
 
     def setColour(self,colour):
