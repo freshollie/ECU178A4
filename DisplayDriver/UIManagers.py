@@ -40,7 +40,7 @@ class ButtonManager(UIManager):
             return False
 
     def getHoveredElement(self,pos):
-        for element in self.elements:
+        for element in reversed(self.elements):
             if self.isInClickArea(element, pos):
                 return element
         return False
@@ -65,9 +65,14 @@ class ButtonManager(UIManager):
         element = self.getHoveredElement(event.pos)
         if element:
             if element!=self.hoveredElement:
+                if self.hoveredElement:
+                    self.hoveredElement.hoverUp()
+                    self.hoveredElement.mouseUp()
+                    self.hoveredElement = None
                 element.hoverDown()
                 self.hoveredElement = element
         else:
             if self.hoveredElement:
                 self.hoveredElement.hoverUp()
+                self.hoveredElement.mouseUp()
                 self.hoveredElement = None

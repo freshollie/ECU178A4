@@ -2,6 +2,7 @@ from .Intervals import *
 from .Globals import *
 from .Points import *
 import pygame
+import string
 import threading
 import time
 import math
@@ -435,8 +436,40 @@ class TextBox(object):
         for text in self.text:
             for i in range(len(self.text)):
                 self.text.setPos([self.pos[0]+1,self.pos[1]+i+1])
-    
-        
-    
-    
-        
+
+class DirectInput(OnscreenText):
+    def __init__(self, pos, text='', defaultInput = '', size = 20, maxLength = None):
+        self.preText = text
+        self.input = defaultInput
+        self.maxLength = maxLength
+        OnscreenText.__init__(self, pos = pos, text = text, size = size)
+
+    def takeInput(self, keyEvent):
+        key = keyEvent.key
+
+        oldInput = self.input
+
+        if chr(key) in string.ascii_letters:
+            if pygame.key.get_mods() & pygame.locals.KMOD_SHIFT:
+                self.input+=chr(key).upper()
+            else:
+                self.input+=chr(key)
+
+        elif chr(key) in string.digits:
+            self.input+=chr(key)
+
+        elif key == pygame.locals.K_BACKSPACE:
+            if len(self.input)>0:
+                self.input=self.input[:-1]
+
+        elif key == pygame.locals.K_SPACE:
+            self.input+= ' '
+
+        if self.maxLength!= None:
+            if self.maxLength<len(self.input):
+                self.input = oldInput
+
+        self.setText(self.preText+self.input)
+
+    def getInput(self):
+        return self.input
