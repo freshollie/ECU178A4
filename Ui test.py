@@ -5,24 +5,11 @@ import random
 
 DisplayDriver.engine.setFrameRate(50)
 
-class MainScreen(object):
-    def __init__(self):
-        self.option1 = DisplayUI.Button(size=[50, 20], text = 'Option 1', pos = [640/2, 0], command = self.option1Selected)
+def doSomething():
+    print('Doing something when clicked')
 
-
-    def show(self):
-        self.option1.render(DisplayDriver.engine)
-        self.option1.register(DisplayDriver.eventManager.buttonManager)
-
-    def hide(self):
-        self.option1.removeNode()
-        self.option1.deregister()
-
-
-class UITesting(object):
-    def __init__(self):
-        self.mainScreen = MainScreen()
-        self.mainScreen.show()
-
+b = DisplayUI.Button(size=[100, 40], text = 'Option 1', pos = [640/2, 480/2], command = doSomething)
+b.render(DisplayDriver.engine)
+b.register(DisplayDriver.eventManager.buttonManager)
 
 DisplayDriver.init()
