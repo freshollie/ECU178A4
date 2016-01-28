@@ -334,7 +334,17 @@ class Border(Rectangle):
             border=1
         Rectangle.__init__(self,pos,size,colour,border)
         
-        
+class Line(GuiObjectBase):
+    def __init__(self, start, end, width = 1, colour = BLACK):
+        self.colour = colour
+        self.start = start
+        self.end = end
+        self.width = width
+        GuiObjectBase.__init__(self, pos = [0,0])
+
+    def draw(self, surface):
+        pygame.draw.line(surface, self.colour, self.start, self.end, self.width)
+
 
 class TextBox(object):
     '''

@@ -2,7 +2,6 @@ from DisplayDriver import DisplayUI
 from DisplayDriver import DisplayDriver
 import random
 
-
 DisplayDriver.engine.setFrameRate(50)
 
 def doSomething():

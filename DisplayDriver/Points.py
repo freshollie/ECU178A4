@@ -33,6 +33,9 @@ class Point(list):
         bx, by = toPoint
         return math.hypot(bx-ax, by-ay)
 
+    def getPointsList(self):
+        return [self[0],self[1]]
+
     def getX(self):
         return self[0]
 
@@ -66,3 +69,11 @@ class Point(list):
            Gets the distance between its self and the input point
         '''
         return math.sqrt((point.getY()-self.getY())**2+(point.getX()-self.getX())**2)
+
+    def __eq__(self, other):
+        #print(other)
+        if isinstance(other, Point):
+            return other.getPointsList()==self.getPointsList()
+        else:
+            return other == self.getPointsList()
+
