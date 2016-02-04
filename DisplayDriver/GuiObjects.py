@@ -81,7 +81,7 @@ class GuiObjectBase(object):
         '''
         Sets the objects X Value
         '''
-        self.pos,setX(x)
+        self.pos.setX(x)
 
     def setY(self,y):
         '''
@@ -175,7 +175,7 @@ class OnscreenText(GuiObjectBase):
         Called by DisplayDriver to draw the object
         '''
         image=pygame.transform.rotate(self.renderedText,-self.rotation)
-        image.get_rect().center=self.pos
+        image.get_rect().center = self.pos
         screen.blit(image,self.pos) #Render text
 
 class Polygon(GuiObjectBase):
@@ -189,18 +189,18 @@ class Polygon(GuiObjectBase):
         Initialise the Polygon
         '''
         GuiObjectBase.__init__(self,pos)
-        self.colour=colour
+        self.colour = colour
         self.image = None
-        self.border=border
+        self.border = border
         if points:
             self.newPoints(points)
         else:
-            self.points=[]
+            self.points = []
 
     def translatePoints(self,differenceX,differenceY):
-        '''
+        """
         Move all points by differenceX and differenceY
-        '''
+        """
         points=[]
         for item in self.points:
             points.append(Point(item[0]+differenceX,item[1]+differenceY))
@@ -211,10 +211,10 @@ class Polygon(GuiObjectBase):
         '''
         Sets the new pos of the polygon
         '''
-        differenceX=pos[0]-self.pos[0]
-        differenceY=pos[1]-self.pos[1]
+        differenceX = pos[0] - self.pos[0]
+        differenceY = pos[1] - self.pos[1]
 
-        self.translatePoints(differenceX,differenceY)
+        self.translatePoints(differenceX, differenceY)
 
     def newPoints(self,points):
         '''
@@ -222,9 +222,9 @@ class Polygon(GuiObjectBase):
         '''
         
         self.setPoints(points)
-        image = pygame.draw.polygon(pygame.Surface(RES),self.colour,self.points,self.border)
+        image = pygame.draw.polygon(pygame.Surface(RES), self.colour, self.points, self.border)
         self.image = image
-        self.pos=Point(image.center)
+        self.pos = Point(image.center)
 
     def setColour(self,colour):
         '''
@@ -259,15 +259,15 @@ class Polygon(GuiObjectBase):
         '''
         Sets the angle of the polygon
         '''
-        while angle>=360:
-            angle-=360
-        while angle<0:
-            angle+=360
-        angleDifference=angle-self.angle
-        self.angle=angle
+        while angle >= 360:
+            angle -= 360
+        while angle < 0:
+            angle += 360
+        angleDifference=angle - self.angle
+        self.angle = angle
         self.rotatePoints(angleDifference)
 
-    def rotatePoints(self,theta):
+    def rotatePoints(self, theta):
         '''
             Rotates all points about the centre point
             by theta
@@ -277,12 +277,12 @@ class Polygon(GuiObjectBase):
             points.append(point.rotPoint(self.pos,theta))
         self.setPoints(points)
         
-    def draw(self,screen):
+    def draw(self, screen):
         '''
 	        Draws the polygon
         '''
         if self.points:
-            pygame.draw.polygon(screen,self.colour,self.points,self.border)
+            pygame.draw.polygon(screen, self.colour, self.points, self.border)
             
 class Rectangle(Polygon):
     '''

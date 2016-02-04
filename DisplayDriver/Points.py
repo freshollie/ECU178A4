@@ -1,11 +1,15 @@
 import math
 
-class Point(list):
+class Point(object):
     def __init__(self,x,y=None):
         if y!=None:
-            list.__init__(self,[x,y])
+            self.x = x
+            self.y = y
         else:
-            list.__init__(self,x)
+            self.x = x[0]
+            self.y = x[1]
+
+        #list.__init__(self, [self.x, self.y])
 
     def rotPoint(self,axisPoint,ang):
         """
@@ -29,32 +33,35 @@ class Point(list):
         return bearing
 
     def getDist(self,toPoint):
-        ax, ay = self
-        bx, by = toPoint
-        return math.hypot(bx-ax, by-ay)
+        if hasattr(toPoint, '__iter__'):
+            ax, ay = self.getPointsList()
+            bx, by = toPoint
+            return math.hypot(bx-ax, by-ay)
+        else:
+            raise(TypeError("topoint must be an iterable"))
 
     def getPointsList(self):
-        return [self[0],self[1]]
+        return [self.x,self.y]
 
     def getX(self):
-        return self[0]
+        return self.x
 
     def setX(self,x):
-        self[0]=x
+        self.x = x
 
     def getY(self):
-        return self[1]
+        return self.y
 
-    def setY(self,x):
-        self[1]=x
+    def setY(self,y):
+        self.y = y
 
     def setPoints(self,x,y):
-        self[0]=x
-        self[1]=y
+        self.y = y
+        self.x = x
 
     def getPoints(self):
         '''returns new point object'''
-        return Point(self[0],self[1])
+        return Point(self.x, self.y)
 
     def getCenter(self,angle,radius):
         '''Returns a center point of circle from the point
@@ -77,3 +84,22 @@ class Point(list):
         else:
             return other == self.getPointsList()
 
+    def __getitem__(self, i):
+        if i == 0:
+            return self.x
+        elif i == 1:
+            return self.y
+        else:
+            raise(IndexError())
+
+    def __iter__(self):
+        return iter(self.getPointsList())
+
+    def __len__(self):
+        return 2
+
+    def __repr__(self):
+        return self.__str__()
+
+    def __str__(self):
+        return str([self.x, self.y])

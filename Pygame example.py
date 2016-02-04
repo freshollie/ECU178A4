@@ -91,7 +91,7 @@ class ExampleHelperClass():
         self.r.setPos(Point(random.random()*RES[0],random.random()*RES[1]))
 
     def mouseEvent(self, event):
-        self.mouseText.setPos(event.pos)
+        self.mouseText.setPos(Point(event.pos))
 
     def keyboardEvent(self, event):
         if event.key == K_SPACE: # Space key is pressed

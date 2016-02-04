@@ -48,8 +48,6 @@ def find_intersection(p0, p1, p2, p3):
     roundedPoints = list(zip(roundedPointsx, roundedPointsy))
 
     if (round(intersection_point[0], 0), round(intersection_point[1], 0)) not in roundedPoints:
-        print(round(intersection_point[0], 0), round(intersection_point[1], 0))
-        print(roundedPoints)
         return intersection_point
 
 class Road(Line):
@@ -60,119 +58,191 @@ class Road(Line):
         #self.generateRepresentation(start, end)
         Line.__init__(self, start, end, width = 1)
 
+    def destroy(self):
+        self.removeNode()
+
+    def render(self, renderer):
+        Line.render(self, renderer)
+
+class Shop(Rectangle):
+    def __init__(self, pos, name = 'Shop'):
+        self.name = name
+        Rectangle.__init__(self, pos, size = [10,10])
+
+    def setName(self, name):
+        self.name = name
+
+    def destroy(self):
+        self.removeNode()
+
+    def __repr__(self):
+        return self.__str__()
+
+    def __str__(self):
+        return str(self.getPos())
+    #def render(self, renderer):
+     #   Rectangle.render(self, renderer)
+
+
 class Town(object):
-    def __init__(self, roadSpecification = {}, maxIntersections = 5):
-        self.maxIntersections = maxIntersections
+    def __init__(self, roadSpecification = {}, maxShops = 5):
+        self.maxShops = maxShops
         self.roads = []
-        self.intersectionDict = roadSpecification
+        self.shopDict = roadSpecification
 
         if not roadSpecification:
             self.randomlyGenerate()
 
     def notIntersect(self, line):
-        for point in self.intersectionDict:
-            for otherPoint in self.intersectionDict[point]:
-                a = find_intersection(point, otherPoint, line[0], line[1])
+        for shop in self.shopDict:
+            for otherShop in self.shopDict[shop]:
+                a = find_intersection(shop.getPos(), otherShop.getPos(), line[0], line[1])
                 if a:
                     #Rectangle(pos = a, size = [20,20], colour = [255,0,0]).render(DisplayDriver.engine)
                     return False
         return True
 
+    def orderDistance(self, fromPoint, toPoints, take=-1):
+
+        smallestOrder = []
+
+        while len(smallestOrder)<len(toPoints)+take:
+            smallestDistance = float("inf")
+            smallestDistancePoint = None
+            for otherPoint in toPoints:
+                if fromPoint.getPos().getDist(otherPoint.getPos())<smallestDistance and otherPoint!=fromPoint and otherPoint not in smallestOrder:
+                    smallestDistancePoint = otherPoint
+                    smallestDistance = fromPoint.getPos().getDist(otherPoint.getPos())
+
+            if smallestDistancePoint:
+                smallestOrder.append(smallestDistancePoint)
+
+        return smallestOrder
+
 
     def randomlyGenerate(self):
-        self.intersectionDict = {}
-        smallestPointDict = {}
+        self.shopDict = {}
+        orderedShopDict = {}
 
-        for i in range(self.maxIntersections):
-            newPoint = True
+        """
+        First Generate all the shop and make sure the distance between them in large
+        enough to be viewable
+        """
 
-            while newPoint:
-                p = Point(random.random()*Globals.RESOLUTION[0], random.random()*Globals.RESOLUTION[0])
+        for i in range(self.maxShops):
+            newShop = True
 
-                newPoint = False
+            while newShop:
+                p = Point([random.random()*Globals.RESOLUTION[0], random.random()*Globals.RESOLUTION[0]])
+
+                newShop = False
 
                 #Make sure intersections are distenced
 
-                for point in self.intersectionDict:
-                    point = Point(point)
-                    if abs(point.getX()-p.getX()) < Globals.RESOLUTION[0]/self.maxIntersections/2 or abs(point.getY()-p.getY()) < Globals.RESOLUTION[0]/self.maxIntersections/2:
-                        newPoint = True
+                for shop in self.shopDict:
+                    if abs(shop.getX() - p.getX()) < Globals.RESOLUTION[0]/self.maxShops/2 or abs(shop.getY() - p.getY()) < Globals.RESOLUTION[0]/self.maxShops/2:
+                        newShop = True
 
-            self.intersectionDict[tuple(p)]=[]
+            self.shopDict[Shop(p)]=[]
 
-        for point in self.intersectionDict:
-            point = Point(point)
-            smallestOrder = []
+        """
+        Then order all the points in order of distance
+        """
 
-            while len(smallestOrder)<len(self.intersectionDict)-1:
-                highestNumber = float("inf")
-                smallestPoint = None
-                for otherPoint in self.intersectionDict:
-                    otherPoint = Point(otherPoint)
-                    if point.getDist(otherPoint)<highestNumber and otherPoint!=point and tuple(otherPoint) not in smallestOrder:
-                        smallestPoint = otherPoint
-                        highestNumber = point.getDist(otherPoint)
+        for shop in self.shopDict:
+            orderedShopDict[shop] = self.orderDistance(shop, self.shopDict)
 
-                if smallestPoint:
-                    smallestOrder.append(tuple(smallestPoint))
 
-            smallestPointDict[tuple(point)] = smallestOrder
+        """
+        Then connect the points to their closest points without overlapping lines
+        and store these connections
+        """
 
         breakNum = 6
 
         for i in range(breakNum):
-            for point in smallestPointDict:
-                if smallestPointDict[point]:
-                    otherPoint = smallestPointDict[point][0]
-                    if otherPoint not in self.intersectionDict[tuple(point)] and point not in self.intersectionDict[tuple(otherPoint)]:
-                        if self.notIntersect([point,otherPoint]):
-                            self.intersectionDict[tuple(point)].append(otherPoint)
-                            self.intersectionDict[tuple(otherPoint)].append(point)
+            for shop in orderedShopDict:
+                if orderedShopDict[shop]:
+                    otherShop = orderedShopDict[shop][0]
+                    if otherShop not in self.shopDict[shop] and shop not in self.shopDict[otherShop]:
+                        if self.notIntersect([shop.getPos(), otherShop.getPos()]):
+                            self.shopDict[shop].append(otherShop)
+                            self.shopDict[otherShop].append(shop)
 
-                    del smallestPointDict[point][0]
+                    del orderedShopDict[shop][0]
+
+
+        """
+        Then order those points into order of distance for better searching
+        """
+
+        for shop in self.shopDict:
+            self.shopDict[shop] = self.orderDistance(shop, self.shopDict[shop], take=0)
+
+        """
+        Finally generate the roads based on those connections
+        """
 
         self.roads = []
         alreadyDone =[]
-        for point in self.intersectionDict:
-            for otherPoint in self.intersectionDict[point]:
-                if (otherPoint, point) not in alreadyDone:
-                    self.roads.append(Road(start = point, end = otherPoint))
-                    alreadyDone.append((point, otherPoint))
+        for shop in self.shopDict:
+            for otherShop in self.shopDict[shop]:
+                if (otherShop, shop) not in alreadyDone:
+                    self.roads.append(Road(start = shop.getPos(), end = otherShop.getPos()))
+                    alreadyDone.append((shop, otherShop))
 
+    def getConnections(self, node):
+        if node not in self.shopDict:
+            return []
+
+        return self.shopDict[node]
 
     def render(self, renderer):
-        self.rects = []
-        for point in self.intersectionDict:
-            self.rects.append(Rectangle(pos = point, size = [10,10]))
-            self.rects[-1].render(renderer)
+        for shop in self.shopDict:
+            shop.render(DisplayDriver.engine)
 
         for road in self.roads:
             road.render(DisplayDriver.engine)
 
     def destroy(self):
-        for rect in self.rects:
-            rect.removeNode()
+        for shop in self.shopDict:
+            shop.destroy()
         for road in self.roads:
-            road.removeNode()
+            road.destroy()
 
 
 class lel():
     def __init__(self):
         self.t = None
+        self.mouseText = OnscreenText(pos=[0,0], text = '', size = 20)
+        self.mouseText.render(DisplayDriver.engine)
 
     def new(self, event=None):
         if self.t:
             self.t.destroy()
-        self.t = Town(maxIntersections=10)
+            self.r.destroy()
+        self.t = Town(maxShops=15)
         self.t.render(DisplayDriver.engine)
+        self.r = Robot(random.choice(list(self.t.shopDict)), town = self.t)
+        self.r.calcPath()
+        self.r.render(DisplayDriver.engine)
+
+    def kek(self, event):
+        self.mouseText.setPos(event.pos)
+        self.mouseText.setText(str(event.pos))
+
+    def tick(self):
+        self.r.tick()
 
 l = lel()
 
 l.new()
-#DisplayDriver.engine.addTask(l.new, [None])
-DisplayDriver.eventManager.bind(KEYDOWN, l.new)
 
-#DisplayDriver.engine.addTask(ta)
+#DisplayDriver.engine.addTask(l.new, [None])
+#DisplayDriver.eventManager.bind(KEYDOWN, l.new)
+DisplayDriver.eventManager.bind(MOUSEMOTION, l.kek)
+
+DisplayDriver.engine.addTask(l.tick)
 
 
 class Simulation():
