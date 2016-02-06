@@ -12,6 +12,12 @@ import math
 FPS = 50
 
 def find_intersection(p0, p1, p2, p3):
+    """
+    Find intersection takes the start and end points of 2 lines and
+    returns the intersection point if they collide
+
+    Function was found on stackoverflow but modified for our use
+    """
 
     p0,p1,p2,p3 = map(tuple, [p0, p1, p2, p3])
     s10_x = p1[0] - p0[0]
@@ -51,7 +57,14 @@ def find_intersection(p0, p1, p2, p3):
         return intersection_point
 
 class Road(Line):
-    def __init__(self, start, end):#
+    """
+    Road is the representation of a straight road in the town.
+    """
+
+    def __init__(self,
+                 start,
+                 end):
+
         #size = [10, Point(start).getDist(end)]
         #rotation = Point(start).getBearing(Point(end))
 
@@ -65,9 +78,19 @@ class Road(Line):
         Line.render(self, renderer)
 
 class Shop(Rectangle):
-    def __init__(self, pos, name = 'Shop'):
+    """
+    Shop is the representation of a shop in the town. May be used later
+    if we wanted to find our way around a shop too.
+    """
+    def __init__(self,
+                 pos,
+                 name = 'Shop'):
+
         self.name = name
-        Rectangle.__init__(self, pos, size = [10,10])
+
+        Rectangle.__init__(self,
+                           pos,
+                           size = [10,10])
 
     def setName(self, name):
         self.name = name
@@ -85,7 +108,13 @@ class Shop(Rectangle):
 
 
 class Town(object):
-    def __init__(self, roadSpecification = {}, maxShops = 5):
+    """
+    Town is graph made up of shops connecting to roads.
+    """
+    def __init__(self,
+                 roadSpecification = {},
+                 maxShops = 5):
+
         self.maxShops = maxShops
         self.roads = []
         self.shopDict = roadSpecification
@@ -94,6 +123,10 @@ class Town(object):
             self.randomlyGenerate()
 
     def notIntersect(self, line):
+        """
+        Returns true if the road given does not intersect with any other already defined road
+        """
+
         for shop in self.shopDict:
             for otherShop in self.shopDict[shop]:
                 a = find_intersection(shop.getPos(), otherShop.getPos(), line[0], line[1])
@@ -103,6 +136,9 @@ class Town(object):
         return True
 
     def orderDistance(self, fromPoint, toPoints, take=-1):
+        """
+        Returns the list of "toPoints" in ascending order of distance away from "fromPoint"
+        """
 
         smallestOrder = []
 
@@ -121,6 +157,11 @@ class Town(object):
 
 
     def randomlyGenerate(self):
+        """
+        Randomly generates a graph with the number with max number of shop where all shops are connected to their closest
+        shops with no overlapping lines
+        """
+
         self.shopDict = {}
         orderedShopDict = {}
 
@@ -157,10 +198,9 @@ class Town(object):
         Then connect the points to their closest points without overlapping lines
         and store these connections
         """
-
-        breakNum = 6
-
-        for i in range(breakNum):
+        shouldBreak = False
+        while not shouldBreak:
+            shouldBreak = True
             for shop in orderedShopDict:
                 if orderedShopDict[shop]:
                     otherShop = orderedShopDict[shop][0]
@@ -168,6 +208,7 @@ class Town(object):
                         if self.notIntersect([shop.getPos(), otherShop.getPos()]):
                             self.shopDict[shop].append(otherShop)
                             self.shopDict[otherShop].append(shop)
+                            shouldBreak = False
 
                     del orderedShopDict[shop][0]
 
@@ -192,6 +233,10 @@ class Town(object):
                     alreadyDone.append((shop, otherShop))
 
     def getConnections(self, node):
+        """
+        Returns all the nodes connected by roads to the given node
+        """
+
         if node not in self.shopDict:
             return []
 
@@ -211,56 +256,57 @@ class Town(object):
             road.destroy()
 
 
+class Simulation():
+    def __init__(self):
+        self.town = Town(maxShops = 15)
+        self.town.render(DisplayDriver.engine)
+        self.robot = Robot(random.choice(list(self.town.shopDict)), town = self.town)
+        self.robot.render(DisplayDriver.engine)
+
+    def tick(self):
+        self.robot.tick()
+
 class lel():
     def __init__(self):
         self.t = None
+        self.rs = []
         self.mouseText = OnscreenText(pos=[0,0], text = '', size = 20)
         self.mouseText.render(DisplayDriver.engine)
 
     def new(self, event=None):
-        if self.t:
-            self.t.destroy()
-            self.r.destroy()
-        self.t = Town(maxShops=15)
-        self.t.render(DisplayDriver.engine)
-        self.r = Robot(random.choice(list(self.t.shopDict)), town = self.t)
-        self.r.calcPath()
-        self.r.render(DisplayDriver.engine)
+        if event == None or event.key != K_a:
+            if self.t:
+                self.t.destroy()
+            for r in self.rs:
+                r.destroy()
+            self.t = Town(maxShops=15)
+            self.t.render(DisplayDriver.engine)
+        else:
+            if self.t:
+                self.rs.append(Robot(random.choice(list(self.t.shopDict)), town = self.t))
+                self.rs[-1].render(DisplayDriver.engine)
+
 
     def kek(self, event):
         self.mouseText.setPos(event.pos)
         self.mouseText.setText(str(event.pos))
 
     def tick(self):
-        self.r.tick()
+        for r in self.rs:
+            r.tick()
 
-l = lel()
+#l = lel()
 
-l.new()
+#l.new()
 
 #DisplayDriver.engine.addTask(l.new, [None])
 #DisplayDriver.eventManager.bind(KEYDOWN, l.new)
-DisplayDriver.eventManager.bind(MOUSEMOTION, l.kek)
-
-DisplayDriver.engine.addTask(l.tick)
+#DisplayDriver.eventManager.bind(MOUSEMOTION, l.kek)
 
 
-class Simulation():
-    def __init__(self):
-        self.robot = Robot([640/2,640/2])
-        self.robot.render(DisplayDriver.engine)
-        #r.setBearing(random.random()*360)
+sim = Simulation()
 
-        self.robot.velocity = 100
-
-        #DisplayDriver.eventManager.bind(MOUSEMOTION,mouseMoved)
-        DisplayDriver.engine.addTask(r.tick)
-
-
-    def mouseMoved(event):
-        pos = event.pos
-
-        self.robot.setBearing(Point(pos).getBearing(r.getPos()))
+DisplayDriver.engine.addTask(sim.tick)
 
 DisplayDriver.engine.setFrameRate(Globals.FPS)
 DisplayDriver.engine.graphics.setRes(Globals.RESOLUTION)

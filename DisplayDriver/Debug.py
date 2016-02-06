@@ -1,8 +1,4 @@
-import time
-import sys
-import os
-from .Globals import *
-from .Points import *
+import datetime
 from .GuiObjects import *
 from pygame.locals import *
 

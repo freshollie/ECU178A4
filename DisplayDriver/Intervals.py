@@ -1,92 +1,123 @@
-import datetime
+####
+# Documentation start: 2/12/15
+#
+# 2/12/15:
+# Fixed start on an already existing sequence
+# not putting funcnum to -1
+#
 
-class Sequence(dict):
+
+class Sequence():
     
     def __init__(self,engine,*intervals):
         self.started=False
         self.engine=engine
-        self.name=''
-        self['sequence']=[]
+        self.sequence=[]
+        self.funcNum=-1
+        self.shouldLoop=False
         for interval in intervals:
-            self['sequence'].append(interval)
+            self.sequence.append(interval)
 
     def append(self,interval):
-        self['sequence'].append(interval)
+        self.sequence.append(interval)
 
     def start(self):
         if not self.started:
-            if 'loop' in self:
-                del self['loop']
+            self.resetSequence()
+            self.shouldLoop=False
             self.started=True
             self.engine.addSequence(self)
 
     def loop(self):
         if not self.started:
-            self['loop']=True
+            self.resetSequence()
+            self.shouldLoop=True
             self.started=True
             self.engine.addSequence(self)
 
-    def finish(self):
-        if self.started and 'funcNum' in self:
-            self['funcNum']=len(self['sequence'])+1
+    def isLoop(self):
+        return self.shouldLoop
 
-    def printStructure(self):
-        print('Sequence object %s Running:' %(self.started))
-        indent=0
-        time=0
-        for object in self['sequence']:
-            if type(object)==Wait:
-                print('|%s: %s Wait(%s)' %(datetime.timedelta(seconds=time),
-                                           indent*'    ',
-                                           object['wait']
-                                           )
-                      )
-                time+=object['wait']
-                
-            elif type(object)==Func:
-                line1='|%s:%s Function{' %(datetime.timedelta(seconds=time),
-                                               indent*'    '
-                                            )
-                line2='%s%s(%s)' %(len(line1)*' ',
-                                   object['function'][0].__name__,
-                                   ('\n'+len(line1)*' '+',').join([str(item) for item in object['function'][0:]])
-                                   )
-                line3='%s}' %(len(line1)*' ')
-                print(line1)
-                print(line2)
-                print(line3)
-                
-                
+    def resetSequence(self):
+        self.funcNum = -1
+        for interval in self.sequence:
+            if type(interval)==Wait:
+                interval.waiting = None
+
+    def getSequence(self):
+        return self.sequence
+
+    def getSequenceLength(self):
+        return len(self.sequence)
+
+    def setFuncNum(self,num):
+        self.funcNum=num
+
+    def getFuncNum(self):
+        return self.funcNum
+
+    def getInterval(self):
+        return self.sequence[self.funcNum]
+
+    def finish(self):
+        if self.started:
+            self.setFuncNum(self.getSequenceLength()+1)
+            self.started = False
             
             
     def __str__(self):
-        self.printStructure()
-        return ''
+        return 'Sequence object %s Running: %s' %(self['name'],self.running)
 
-class Func(dict):
+class Interval():
+
+    def __init__(self,type):
+        self.type=type
+
+    def getType(self):
+        return self.type
+    
+
+class Func(Interval):
 
     def __init__(self,function,*args):
-        self['function']=[function,args]
-        
-    def __str__(self):
-        return 'Function Interval %s' %self['function'][0].__name__
+        self.function=function
+        self.arguments=args
+        Interval.__init__(self,'Function')
 
-class Wait(dict):
+    def getFunction(self):
+        return self.function
+
+    def getArguments(self):
+        return self.arguments
+
+    def __str__(self):
+        return 'Function Interval %s' %self.function.__name__
+
+class Wait(Interval):
 
     def __init__(self,time):
-        self['wait']=time
+        self.time=time
+        self.waiting=None
+        Interval.__init__(self,'Wait')
+
+    def getTime(self):
+        return self.time
 
     def __str__(self):
-        return 'Wait Interval %s' %self['wait']
+        return 'Wait Interval %s' %self.time
 
-class Parrallel(dict):
+class Parallel(Interval):
 
     def __init__(self,*intervals):
-        self['parrallel']=[]
+        self.parallel=[]
         for interval in intervals:
-            self['parrallel'].append(interval)
+            self.parallel.append(interval)
+        Interval.__init__(self,'Parallel')
+
+    def append(self, interval):
+        self.parallel.append(interval)
 
     def __str__(self):
-        return 'Parrallel interval %s' %([function.__name__ for function in self['parrallel']])
+        return 'Parallel interval %s' %([function for function in self.parallel])
 
 

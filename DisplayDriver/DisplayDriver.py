@@ -190,7 +190,7 @@ class Core(object):
         Add a sequence to run
         '''
         self.sequences.append(sequence)
-        self.sequences[-1]['funcNum']=-1
+        self.sequences[-1].funcNum =- 1
 
     def deleteSequence(self,sequence):
         '''
@@ -205,40 +205,48 @@ class Core(object):
         '''
         
         for sequence in self.sequences:
-            if sequence['funcNum']+1==len(sequence['sequence']):
-                if 'loop' not in sequence:
+            if sequence.getFuncNum()+1==sequence.getSequenceLength():
+                if not sequence.isLoop():
                     self.deleteSequence(sequence)
+                    sequence.finish()
                     continue
-                
-                elif not sequence['loop']:
-                    self.deleteSequence(sequence)
-                    continue
-                
+
                 else:
-                    if sequence['loop']==True:
-                        sequence['funcNum']=-1
+                    sequence.setFuncNum(-1)
+
+            sequence.setFuncNum(sequence.getFuncNum()+1)
+            sequenceItem=sequence.getInterval()
+
+            if sequenceItem.getType()=='Wait':
+                if sequenceItem.waiting==None:
+                    sequenceItem.waiting=time.time()+sequenceItem.time
+                    sequence.setFuncNum(sequence.getFuncNum()-1)
+                    continue
+                else:
+                    if time.time()<sequenceItem.waiting:
+                        sequence.setFuncNum(sequence.getFuncNum()-1)
+                        continue
                     else:
-                        sequence['loop']-=1
-                        sequence['funcNum']=-1
-                        
-                    
-            sequence['funcNum']+=1
-            sequenceItem=sequence['sequence'][sequence['funcNum']]
-            
-            if 'function' in sequenceItem:
-                self.addTask(sequenceItem['function'][0],sequenceItem['function'][1],once=True)
-                
-            elif 'parrallel' in sequenceItem:
-                for function in sequenceItem['parrallel']:
-                    self.addTask(function['function'][0],function['function'][1],once=True)
-                    
-            elif 'wait' in sequenceItem:
-                loopNum=int(sequenceItem['wait']/self.frameLength)-2
-                if loopNum<0:
-                    loopNum=0
-                sequence['sequence'][sequence['funcNum']]={'ignore':0}
-                for i in range(int(loopNum)):
-                    sequence['sequence'].insert(sequence['funcNum']+1,{'ignore':0})
+                        sequenceItem.waiting=None
+                        sequence.setFuncNum(sequence.getFuncNum()+1)
+                        if sequence.getFuncNum()==sequence.getSequenceLength(): # Fixed sequence problem with wait being at the end
+                                                                                # of the sequence. 16/11/15
+                            if not sequence.isLoop():
+                                self.deleteSequence(sequence)
+                                sequence.finish()
+                                continue
+
+                            else:
+                                sequence.setFuncNum(-1)
+
+            sequenceItem=sequence.getInterval()
+            if sequenceItem.getType()=='Function':
+                self.addTask(sequenceItem.getFunction(),sequenceItem.getArguments(),once=True)
+
+            elif sequenceItem.getType()=='Parallel':
+                for interval in sequenceItem.parallel:
+                    self.addTask(interval.getFunction(),interval.getArguments(),once=True)
+
             else:
                 continue
                 
