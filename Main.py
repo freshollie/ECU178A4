@@ -258,7 +258,7 @@ class Town(object):
 
 class Simulation():
     def __init__(self):
-        self.town = Town(maxShops = 15)
+        self.town = Town(maxShops = 10)
         self.town.render(DisplayDriver.engine)
         self.robot = Robot(random.choice(list(self.town.shopDict)), town = self.town)
         self.robot.render(DisplayDriver.engine)
