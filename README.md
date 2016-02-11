@@ -1,4 +1,4 @@
-This branch is for anything relating to the ItemHandler.
+This branch is for anything relating to ItemHandler.py.
 
 It contains the following files:
  - Database.py - Creates a SQLite database from the itemsraw.txt file.
