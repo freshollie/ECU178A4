@@ -1,0 +1,12 @@
+#Please make sure the items below are in the following format:
+#Name (String), Type (String), Price (Integer), Weight (Float)
+Apple, Food, 2, 0.1
+Pear, Food, 2, 0.1
+Pineapple, Food, 3, 0.3
+Orange, Food, 2, 0.1
+Cat, Pet, 65, 4.3
+Train, Toy, 10, 1.3
+Bike, Toy, 103, 11.2
+Apple2, Food, 2, 0.1
+Pear2, Food, 2, 0.1
+Pear3, Food, 2, 0.1
