@@ -263,8 +263,26 @@ class Simulation():
         self.robot = Robot(random.choice(list(self.town.shopDict)), town = self.town)
         self.robot.render(DisplayDriver.engine)
 
+        self.consumeText = OnscreenText(pos = [Globals.RESOLUTION[0]-200,0], text = '', size = 20)
+        self.consumeText.render(DisplayDriver.engine)
+
+        self.distanceText = OnscreenText(pos = [Globals.RESOLUTION[0]-200,20], text = '', size = 20)
+        self.distanceText.render(DisplayDriver.engine)
+
+        self.contraintsText = OnscreenText(pos = [Globals.RESOLUTION[0]-200,30], text = '', size = 20)
+        self.contraintsText.render(DisplayDriver.engine)
+
+
+
     def tick(self):
         self.robot.tick()
+        self.distanceText.setText('Distance: %sm' %(int(self.robot.getDistanceTraveled())))
+        self.consumeText.setText('Fuel Used: %s' %(int(self.robot.getFuelUsed())))
+
+        try:
+            self.contraintsText.setText('Distance/Fuel: %s' %(round(self.robot.getDistanceTraveled()/self.robot.getFuelUsed(), 2)))
+        except ZeroDivisionError:
+            pass
 
 class lel():
     def __init__(self):

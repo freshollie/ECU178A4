@@ -65,8 +65,10 @@ class Robot(Rectangle):
 
         #
         self.homeNode = homeNode
-        self.velocity = 2000
-        self.turnSpeed = 1000
+        self.distanceTraveled = 0
+        self.fuelUsed = 0
+        self.velocity = 1000
+        self.turnSpeed = 300
         self.town = town
         self.route = None
         self.bearing = 0
@@ -85,6 +87,16 @@ class Robot(Rectangle):
 
         self.bearing = bearing
         self.setRotation(self.bearing)
+
+    def consumeFuel(self, distance):
+        self.fuelUsed += self.velocity / 100000 * distance
+        self.distanceTraveled += distance
+
+    def getFuelUsed(self):
+        return self.fuelUsed
+
+    def getDistanceTraveled(self):
+        return self.distanceTraveled
 
     def turn(self, targetBearing):
         """
@@ -229,13 +241,14 @@ class Robot(Rectangle):
                 if self.getPos().getDist(self.targetShop.getPos())<(self.velocity*Globals.PixelsPerMetre/Globals.FPS):
                     # If the distance to the shop is so small that it will go past it next movement
                     # Then move to the shop
-
+                    self.consumeFuel(self.getPos().getDist(self.targetShop.getPos()))
                     self.setPos(self.targetShop.getPos())
 
                     self.targetShop = self.route.getNextPoint() # Get a new target shop
 
                 elif self.bearing == self.targetShop.getPos().getBearing(self.getPos()):
                     # If the current bearing is correct
+                    self.consumeFuel(self.velocity*Globals.PixelsPerMetre/Globals.FPS)
 
                     self.setPos(self.calcTrigPos(self.velocity*Globals.PixelsPerMetre/Globals.FPS))
 
