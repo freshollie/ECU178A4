@@ -71,7 +71,7 @@ class Robot(Rectangle):
         self.turnSpeed = 300
         self.town = town
         self.route = None
-        self.bearing = 0
+        self.bearing = 1
         self.angle = 0
         self.setBearing(0)
         self.targetShop = []
