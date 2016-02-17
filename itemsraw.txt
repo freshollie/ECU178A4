@@ -10,3 +10,37 @@ Bike, Toy, 103, 11.2
 Apple2, Food, 2, 0.1
 Pear2, Food, 2, 0.1
 Pear3, Food, 2, 0.1
+
+#Anwar
+#Food List
+Apple, Food, 2, 0.1
+Banana, Food, 2, 0.2
+Nuts, Food, 4, 0.5
+Cake, 5, 5.0
+Bottled Water, 2, 1
+Chicken, 4, 3.0
+Pizza, 10, 5.0
+Milk, 2, 3.0
+Ready Meal, 5, 3.0
+
+#Clothes Store
+Jeans, 18, 3.5
+Hoodie, 15, 3.0
+Shoes, 20, 6.0
+Socks, 5, 2.5
+Underwear, 7, 2.8
+Shorts, 12, 3.0
+Shirt, 15, 2.5
+Jumper, 10, 2.7
+Suit, 50, 6.5
+
+#Sport Store
+Football, 10, 5.5
+Football Boots, 25, 4.0
+Golf Club, 35, 10.0
+Trainers, 15, 5.0
+Bike, 50, 20.0
+Bag, 9, 4.5
+Sports Shorts, 5, 2.0
+Rugby Ball, 10, 5.5
+Tennis Racquet, 20, 4.5
