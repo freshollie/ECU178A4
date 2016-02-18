@@ -44,3 +44,26 @@ Bag, 9, 4.5
 Sports Shorts, 5, 2.0
 Rugby Ball, 10, 5.5
 Tennis Racquet, 20, 4.5
+
+#Mich
+Perfume, Health, 3, 0.3
+Nappies, Health, 4, 1
+Toothbrush, Health, 2, 0.1
+Facewipes, Health, 2, 0.1
+Shaver, Health, 4, 1
+Vitamins, Health, 5, 1
+Floss, Helath, 2, 0.4
+Mouthwash, Health, 3, 0.9
+Shampoo, Helath, 3, 2
+
+
+#Mich
+Laptop, Tech, 100, 3
+Mouse, Tech, 5, 0.3
+GPU, Tech, 110, 0.9
+USBstick, Tech, 10, 0.1
+ScreenProtector, Tech, 2, 0
+HDD, Tech, 20, 2
+GameConsole, Tech, 100, 4
+Keyboard, Tech, 10, 1
+
