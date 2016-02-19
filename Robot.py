@@ -2,6 +2,8 @@ from DisplayDriver.GuiObjects import *
 import math
 import Globals
 import time
+import random
+import threading
 
 class Route:
     """
@@ -12,6 +14,7 @@ class Route:
         self.path = path # Store the path
         self.originalPath = path[:] #Take a copy of the stored path
         self.lines = []
+        self.finished = False
         for i in range(len(path)-1): # Generate graphical lines representing the paths
             self.lines.append(Line(path[i].getPos(),
                                    path[i+1].getPos(),
@@ -22,9 +25,16 @@ class Route:
         Returns the next point in route
         """
         if not self.path:
+            self.finished = True
             self.reset()
 
-        return self.path.pop()
+        return self.path.pop(0)
+
+    def getRoute(self):
+        return self.path
+
+    def isFinished(self):
+        return self.finished
 
     def reset(self):
         """
@@ -53,6 +63,8 @@ class Robot(Rectangle):
     It will find the path around a town and move around that path
     """
 
+    MASS = 1000 # grams
+
     def __init__(self,
                  homeNode,
                  town):
@@ -63,12 +75,11 @@ class Robot(Rectangle):
                            size = [20,20],
                            colour = [255, 0, 0])
 
-        #
         self.homeNode = homeNode
         self.distanceTraveled = 0
         self.fuelUsed = 0
-        self.velocity = 1000
-        self.turnSpeed = 300
+        self.velocity = 5000
+        self.turnSpeed = 3000
         self.town = town
         self.route = None
         self.bearing = 1
@@ -76,7 +87,9 @@ class Robot(Rectangle):
         self.setBearing(0)
         self.targetShop = []
         self.calcPath()
+
         self.status = "Hunt"
+        self.shopsVisited = []
 
     def setBearing(self, bearing):
         """
@@ -89,7 +102,7 @@ class Robot(Rectangle):
         self.setRotation(self.bearing)
 
     def consumeFuel(self, distance):
-        self.fuelUsed += self.velocity / 100000 * distance
+        self.fuelUsed += self.velocity / 112987.3284729384 * distance
         self.distanceTraveled += distance
 
     def getFuelUsed(self):
@@ -104,31 +117,36 @@ class Robot(Rectangle):
         """
 
         if abs(self.bearing - targetBearing)<(self.turnSpeed/Globals.FPS):
+            # If the angle it needs to turn is less than it would turn this tick
             self.setBearing(targetBearing)
             return
 
         bearing = self.bearing
 
-        if targetBearing>bearing:
+        if targetBearing>bearing: # Calculates the optimal direction to turn
             difference = targetBearing - bearing
+
             if difference > 180:
                 turnModifier = -1
+
             else:
                 turnModifier = 1
+
         else:
             difference = bearing - targetBearing
 
             if difference > 180:
                 turnModifier = 1
+
             else:
                 turnModifier = -1
 
-        self.setBearing(self.bearing+(self.turnSpeed/Globals.FPS*turnModifier))
+        self.setBearing(self.bearing+(self.turnSpeed/Globals.FPS*turnModifier)) # Turns in the direction relative to turn speed
 
 
-    def reccurPath(self, currentShop, previousShops, pathLength):
+    def reccurPath(self, currentShop, previousShops, pathLength, toVisit, lastMatters = False):
         """
-        Reccurr path runs a brute force traveling salesman solution.
+        Recur path runs a brute force traveling salesman solution.
 
         It will return the fastest route around all of the shops in the order they
         will be navigated
@@ -136,42 +154,131 @@ class Robot(Rectangle):
 
         connectingShops = self.town.getConnections(currentShop) # Find the shops that are connected to the current shop
 
+        highestList = []
+        middleList = []
+        bottomList = []
+
+        if set(toVisit).issubset(set(previousShops)):
+            # If we have visited all the shops we need to
+            if lastMatters:
+                # If we care about the last shop we visit
+                if previousShops[-1] == toVisit[-1]:
+                    # Make sure that the last shop we visited was the last shop we need to
+                    yield (previousShops[:], pathLength) # Yield the path along with its length
+                    return
+
+            else:
+                yield (previousShops[:], pathLength)
+                return
+
+        testToVisit = toVisit[:]
+        del testToVisit[-1]
+
+        if toVisit[-1] in connectingShops and set(testToVisit).issubset(set(previousShops)) and not lastMatters:
+            # If we are at the end of the route, then we have found a valid route
+            yield (previousShops[:] + [toVisit[-1]], pathLength + previousShops[-1].getPos().getDist(toVisit[-1].getPos()))
+            return
+
         for shop in connectingShops:
+            if len(previousShops) > 2:
+                shouldContinue = False
+
+                for i in range(len(previousShops)):
+                    if i>0:
+                        if previousShops[i-1] == currentShop and previousShops[i] == shop:
+                            shouldContinue = True
+
+                if shouldContinue:
+                    continue
+
+            if len(previousShops)>1:
+                if previousShops[-2] == shop:
+                    continue
 
             if shop in previousShops:
-                continue # If the selected next shop has already been used it will be ignored
+                #bottomList.append(shop)
+                continue
+
+            if shop in toVisit:
+                highestList.append(shop)
+
+            else:
+                middleList.append(shop)
+
+        for shop in highestList + middleList + bottomList:
 
             # New shop found so recur for that shop with new perameters
-            returnValue = self.reccurPath(shop, previousShops[:]+[shop], pathLength + currentShop.getPos().getDist(shop.getPos()))
+            paths = self.reccurPath(shop, previousShops[:]+[shop], pathLength + currentShop.getPos().getDist(shop.getPos()), toVisit, lastMatters = lastMatters)
 
-            if returnValue != False: # If false is returned then no valid route was found for that shop
-                return returnValue # Return the valid route
-
-        if self.homeNode in connectingShops and len(previousShops) == len(self.town.shopDict):
-            # If we are at the end of the route, then we have found a valid route
-            return previousShops[:] + [self.homeNode]
-        else:
-            # Run out of shops and we are at the end of the route, so return False show not a valid route
-            return False
+            for path in paths:
+                if path != False: # If false is returned then no valid route was found for that shop
+                    yield path
 
 
-    def calcPath(self):
+        # Run out of shops and we are at the end of the route, so return False show not a valid route
+        yield False
+
+    def getRandomShopsToVisit(self):
+        newToVisit = []
+        toVisit = self.town.getShops()
+        toVisit.remove(self.homeNode)
+
+        for i in range(random.randint(1,len(toVisit))):
+            shop = random.choice(toVisit)
+            shop.setColour([0,0,255])
+            newToVisit.append(shop)
+            toVisit.remove(shop)
+
+        #toVisit.remove(self.homeNode)
+        toVisit = newToVisit
+
+        return toVisit
+
+    def calcPath(self, toVisit = [], lastMatters = False):
         """
-        Finds and stores a path around the town
+        Finds and stores a path around the town to the given shops.
+        if no shops are given then a route around the town is found.
         """
 
         if not self.town:
             # If there is no given town then this won't work so return
             return
 
-        path = self.reccurPath(self.homeNode, [self.homeNode], 0)
+        if not toVisit:
+            toVisit = self.town.getShops()
+            toVisit.remove(self.homeNode)
 
-        if path:
-            self.route = Route(path) # Make a route object of the found path
+        currentShop = self.town.getShopFromPosition(self.getPos())
 
-        else:
-            print(path)
+        paths = self.reccurPath(currentShop, [currentShop], 0, toVisit, lastMatters = lastMatters) # Generator object to find all the valid paths
 
+        shortestLength = float("inf")
+        shortestPath = None
+        startTime = time.time()
+
+        for path in paths:
+            # Check each new generated path to find the shortest one
+            if not path:
+                continue
+
+            if path[1] < shortestLength:
+                shortestLength = path[1]
+                shortestPath = path[0]
+
+            if time.time()-startTime>30:
+                break # Some paths take too long to check (it's O(n!) complexity) so the loop
+                      # will stop if 30 seconds passes
+
+        if shortestPath == None:
+            return
+
+        if self.route:
+            self.route.destroy() # Unrender the previous route
+
+        self.route = Route(shortestPath) # Make a route object of the found path
+
+        if self.rendered:
+            self.route.render(self.rendered) # Rendering the path for visual reasons
 
     def calcTrigPos(self, distance):
         """
@@ -207,21 +314,28 @@ class Robot(Rectangle):
 
         else:
             # Do the correct trig calculation based on what the bearing is.
+            # Trig works by finding the other 2 sides of the triangle
+            # in this case X and Y from the hypotenuse the distance
+
             if self.bearing<90:
+
                 yPlus = -(math.cos(math.radians(self.bearing))*distance)
                 xPlus = math.sin(math.radians(self.bearing))*distance
 
             elif self.bearing<180:
+
                 bearing = math.radians(self.bearing - 90)
                 xPlus = math.cos(bearing)*distance
                 yPlus = math.sin(bearing)*distance
 
             elif self.bearing<270:
+
                 bearing = math.radians(self.bearing - 180)
                 xPlus = -math.sin(bearing)*distance
                 yPlus = math.cos(bearing)*distance
 
             elif self.bearing<360:
+
                 bearing = math.radians(self.bearing - 270)
                 xPlus = - math.cos(bearing)*distance
                 yPlus = - math.sin(bearing)*distance
@@ -230,11 +344,13 @@ class Robot(Rectangle):
 
     def tick(self):
         """
-        Tick method. Called every new display frame.
-
+        Tick method. Called every new displayed frame
         """
 
-        if self.status == "Hunt": # Hunt means go looking around the shops
+        if not self.route: # If there is no defined route nothing can be done
+            return
+
+        if self.status == "Hunt" or self.status == "Buy":
 
             if self.targetShop: # If there is a current targetShop
 
@@ -255,9 +371,19 @@ class Robot(Rectangle):
             else:
                 self.targetShop = self.route.getNextPoint()
 
-            self.turn(self.targetShop.getPos().getBearing(self.getPos())) # Turn towards the given bearing
+            if self.route.isFinished():
 
-            #self.setPos(self.calcTrigPos(self.velocity*Globals.PixelsPerMetre/Globals.FPS))
+                if self.status == "Hunt":
+                    newShops = self.getRandomShopsToVisit()
+                    newShops.append(self.homeNode)
+                    self.calcPath(newShops, lastMatters = True)
+                    self.targetShop = self.route.getNextPoint()
+                    self.status = "Buy"
+
+                else:
+                    self.status = "Finished"
+
+            self.turn(self.targetShop.getPos().getBearing(self.getPos())) # Turn towards the given bearing
 
     def destroy(self):
         if self.route:

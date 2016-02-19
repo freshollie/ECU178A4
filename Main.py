@@ -11,6 +11,32 @@ import math
 
 FPS = 50
 
+def dot(vA, vB):
+    return vA[0]*vB[0]+vA[1]*vB[1]
+
+def ang(p1, p2, p3, p4):
+    # Get nicer vector form
+    vA = [(p1[0]-p2[0]), (p1[1]-p2[1])]
+    vB = [(p3[0]-p4[0]), (p3[1]-p4[1])]
+    # Get dot prod
+    dot_prod = dot(vA, vB)
+    # Get magnitudes
+    magA = dot(vA, vA)**0.5
+    magB = dot(vB, vB)**0.5
+    # Get cosine value
+    cos_ = dot_prod/magA/magB
+    # Get angle in radians and then convert to degrees
+    angle = math.acos(dot_prod/magB/magA)
+    # Basically doing angle <- angle mod 360
+    ang_deg = math.degrees(angle)%360
+
+    if ang_deg-180>=0:
+        # As in if statement
+        return 360 - ang_deg
+    else:
+
+        return ang_deg
+
 def find_intersection(p0, p1, p2, p3):
     """
     Find intersection takes the start and end points of 2 lines and
@@ -102,7 +128,7 @@ class Shop(Rectangle):
         return self.__str__()
 
     def __str__(self):
-        return str(self.getPos())
+        return "Shop(%s)" %(self.getPos())
     #def render(self, renderer):
      #   Rectangle.render(self, renderer)
 
@@ -129,10 +155,32 @@ class Town(object):
 
         for shop in self.shopDict:
             for otherShop in self.shopDict[shop]:
+
                 a = find_intersection(shop.getPos(), otherShop.getPos(), line[0], line[1])
+
                 if a:
                     #Rectangle(pos = a, size = [20,20], colour = [255,0,0]).render(DisplayDriver.engine)
                     return False
+        return True
+
+    def notSmallAngle(self, line):
+        """
+        Returns true if the road isnt at a really small angle with another road
+        """
+
+        for shop in self.shopDict:
+            for otherShop in self.shopDict[shop]:
+                a = float("inf")
+
+                if line[1] == otherShop.getPos():
+                    a = ang(line[0],line[1], otherShop.getPos(), shop.getPos())
+
+                if a < 15:
+                    print(line, otherShop, shop)
+                    #Line(start = line[0], end = line[1], colour = [0,255,0]).render(DisplayDriver.engine)
+                    #Line(start = otherShop.getPos(), end = shop.getPos(), colour = [0,255,0]).render(DisplayDriver.engine)
+                    return True
+
         return True
 
     def orderDistance(self, fromPoint, toPoints, take=-1):
@@ -193,7 +241,6 @@ class Town(object):
         for shop in self.shopDict:
             orderedShopDict[shop] = self.orderDistance(shop, self.shopDict)
 
-
         """
         Then connect the points to their closest points without overlapping lines
         and store these connections
@@ -205,7 +252,7 @@ class Town(object):
                 if orderedShopDict[shop]:
                     otherShop = orderedShopDict[shop][0]
                     if otherShop not in self.shopDict[shop] and shop not in self.shopDict[otherShop]:
-                        if self.notIntersect([shop.getPos(), otherShop.getPos()]):
+                        if self.notIntersect([shop.getPos(), otherShop.getPos()]) and self.notSmallAngle([shop.getPos(), otherShop.getPos()]):
                             self.shopDict[shop].append(otherShop)
                             self.shopDict[otherShop].append(shop)
                             shouldBreak = False
@@ -242,6 +289,16 @@ class Town(object):
 
         return self.shopDict[node]
 
+    def getShops(self):
+        return list(self.shopDict.keys())
+
+    def getShopFromPosition(self, position):
+        for shop in self.shopDict:
+            if position.getDist(shop.getPos())<1:
+                return shop
+
+        return False
+
     def render(self, renderer):
         for shop in self.shopDict:
             shop.render(DisplayDriver.engine)
@@ -258,9 +315,41 @@ class Town(object):
 
 class Simulation():
     def __init__(self):
-        self.town = Town(maxShops = 10)
+        DisplayDriver.eventManager.bind(KEYDOWN, self.takeInput)
+        self.taskId = None
+        self.generate()
+        self.start()
+
+
+    def tick(self):
+        if not self.robot:
+            return
+
+        if self.robot.status == "Finished":
+            Sequence(DisplayDriver.engine, Wait(2), Func(self.reset)).start()
+            DisplayDriver.engine.removeTask(self.taskId)
+            self.taskId = None
+            return
+
+        self.robot.tick()
+        self.distanceText.setText('Distance: %sm' %(int(self.robot.getDistanceTraveled())))
+        self.consumeText.setText('Fuel Used: %s' %(int(self.robot.getFuelUsed())))
+
+        try:
+            self.contraintsText.setText('Distance/Fuel: %s' %(round(self.robot.getDistanceTraveled()/self.robot.getFuelUsed(), 2)))
+        except ZeroDivisionError:
+            pass
+
+    def generate(self):
+
+        self.town = Town(maxShops = 13)
         self.town.render(DisplayDriver.engine)
-        self.robot = Robot(random.choice(list(self.town.shopDict)), town = self.town)
+
+        homeNode = random.choice(list(self.town.shopDict))
+        homeNode.setColour([0,255,0])
+
+
+        self.robot = Robot(homeNode, town = self.town)
         self.robot.render(DisplayDriver.engine)
 
         self.consumeText = OnscreenText(pos = [Globals.RESOLUTION[0]-200,0], text = '', size = 20)
@@ -272,59 +361,25 @@ class Simulation():
         self.contraintsText = OnscreenText(pos = [Globals.RESOLUTION[0]-200,30], text = '', size = 20)
         self.contraintsText.render(DisplayDriver.engine)
 
+    def takeInput(self, event):
+        if event.key == K_a:
+            self.reset()
 
+    def reset(self):
+        self.consumeText.removeNode()
+        self.distanceText.removeNode()
+        self.robot.destroy()
+        self.town.destroy()
+        self.contraintsText.removeNode()
+        if self.taskId:
+            DisplayDriver.engine.removeTask(self.taskId)
+        self.generate()
+        self.start()
 
-    def tick(self):
-        self.robot.tick()
-        self.distanceText.setText('Distance: %sm' %(int(self.robot.getDistanceTraveled())))
-        self.consumeText.setText('Fuel Used: %s' %(int(self.robot.getFuelUsed())))
-
-        try:
-            self.contraintsText.setText('Distance/Fuel: %s' %(round(self.robot.getDistanceTraveled()/self.robot.getFuelUsed(), 2)))
-        except ZeroDivisionError:
-            pass
-
-class lel():
-    def __init__(self):
-        self.t = None
-        self.rs = []
-        self.mouseText = OnscreenText(pos=[0,0], text = '', size = 20)
-        self.mouseText.render(DisplayDriver.engine)
-
-    def new(self, event=None):
-        if event == None or event.key != K_a:
-            if self.t:
-                self.t.destroy()
-            for r in self.rs:
-                r.destroy()
-            self.t = Town(maxShops=15)
-            self.t.render(DisplayDriver.engine)
-        else:
-            if self.t:
-                self.rs.append(Robot(random.choice(list(self.t.shopDict)), town = self.t))
-                self.rs[-1].render(DisplayDriver.engine)
-
-
-    def kek(self, event):
-        self.mouseText.setPos(event.pos)
-        self.mouseText.setText(str(event.pos))
-
-    def tick(self):
-        for r in self.rs:
-            r.tick()
-
-#l = lel()
-
-#l.new()
-
-#DisplayDriver.engine.addTask(l.new, [None])
-#DisplayDriver.eventManager.bind(KEYDOWN, l.new)
-#DisplayDriver.eventManager.bind(MOUSEMOTION, l.kek)
-
+    def start(self):
+        self.taskId = DisplayDriver.engine.addTask(self.tick)
 
 sim = Simulation()
-
-DisplayDriver.engine.addTask(sim.tick)
 
 DisplayDriver.engine.setFrameRate(Globals.FPS)
 DisplayDriver.engine.graphics.setRes(Globals.RESOLUTION)
