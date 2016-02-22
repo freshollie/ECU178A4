@@ -1,0 +1,103 @@
+#Please make sure the items below are in the following format:
+#Name (String), Type (String), Price (Integer), Weight (Float)
+
+Apple, Food, 2, 0.1
+Banana, Food, 2, 0.2
+Nuts, Food, 4, 0.5
+Cake, Food, 5, 5.0
+Bottled Water, Food, 2, 1
+Chicken, Food, 4, 3.0
+Pizza, Food, 10, 5.0
+Milk, Food, 2, 3.0
+Ready Meal, Food, 5, 3.0
+
+Jeans, Clothes, 18, 3.5
+Hoodie, Clothes, 15, 3.0
+Shoes, Clothes, 20, 6.0
+Socks, Clothes, 5, 2.5
+Underwear, Clothes, 7, 2.8
+Shorts, Clothes, 12, 3.0
+Shirt, Clothes, 15, 2.5
+Jumper, Clothes, 10, 2.7
+Suit, Clothes, 50, 6.5
+
+Football, Sports, 10, 5.5
+Football Boots, Sports, 25, 4.0
+Golf Club, Sports, 35, 10.0
+Trainers, Sports, 15, 5.0
+Bike, Sports, 50, 20.0
+Bag, Sports, 9, 4.5
+Sports Shorts, Sports, 5, 2.0
+Rugby Ball, Sports, 10, 5.5
+Tennis Racquet, Sports, 20, 4.5
+
+Perfume, Health, 3, 0.3
+Nappies, Health, 4, 1
+Toothbrush, Health, 2, 0.1
+Facewipes, Health, 2, 0.1
+Shaver, Health, 4, 1
+Vitamins, Health, 5, 1
+Floss, Health, 2, 0.4
+Mouthwash, Health, 3, 0.9
+Shampoo, Health, 3, 2
+
+Laptop, Tech, 100, 3
+Mouse, Tech, 5, 0.3
+GPU, Tech, 110, 0.9
+USBstick, Tech, 10, 0.1
+ScreenProtector, Tech, 2, 0
+HDD, Tech, 20, 2
+GameConsole, Tech, 100, 4
+Keyboard, Tech, 10, 1
+
+Toy Car, Toys, 8, 0.3
+Toy Gun, Toys, 10, 0.3
+Jenga, Toys, 5, 0.2
+Frisbee, Toys, 5, 0.1
+Playing Cards, Toys, 7, 0.1
+Jigsaw, Toys, 4, 0.1
+Doll, Toys, 12, 0.2
+Lego, Toys, 15, 0.2
+Toy Train, Toys, 10, 0.3
+
+Necklace, Jewellery, 120, 0.3
+Bracelet, Jewellery, 80, 0.1
+Earrings, Jewellery, 90, 0.1
+Ring, Jewellery, 50, 0.1
+Diamond ring, Jewellery, 150, 0.1
+Watch, Jewellery, 200, 0.2
+Bangles, Jewellery, 60, 0.1
+Gemstones, Jewellery, 50, 0.4
+Locket, Jewellery, 30, 0.1
+Pearls, Jewellery, 35, 0.1
+
+Waching machine, Appliances, 80, 12
+Drying machine, Appliances, 75, 13
+Dishwasher, Appliances, 100, 15
+Fridge, Appliances, 80, 10
+Freezer, Appliances, 80, 9
+Cooker, Appliances, 115, 16
+Microwave, Appliances, 30, 4
+Kettle, Appliances, 25, 4
+Toaster, Appliances, 25, 3
+Iron, Appliances, 20, 2
+
+Flower pot, Garden, 3, 4
+Flowers, Garden, 5, 1
+Rake, Garden, 9, 2
+Fork, Garden, 9, 2
+Chain saw, Garden, 60, 9
+Spade, Garden, 12, 2
+Pressure washer, Garden, 40, 7
+Shears, Garden, 15, 1
+Hose, Garden, 4, 2
+
+Cat, Pets, 73, 3
+Dog, Pets, 128, 7
+Spider, Pets, 20, 0.1
+Rabbit, Pets, 25, 0.5
+Fish, Pets, 15, 0.1
+Bird, Pets, 35, 0.2
+Reptile, Pets, 40, 0.4
+Rat, Pets, 30, 0.1
+Degu, Pets, 30, 0.1

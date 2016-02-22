@@ -67,19 +67,21 @@ class Robot(Rectangle):
 
     def __init__(self,
                  homeNode,
-                 town):
+                 town,
+                 shoppingList):
 
         # Initialise the rectangle
         Rectangle.__init__(self,
                            pos = homeNode.getPos(),
-                           size = [20,20],
+                           size = [8,8],
                            colour = [255, 0, 0])
 
+        self.shoppingList = []
         self.homeNode = homeNode
         self.distanceTraveled = 0
         self.fuelUsed = 0
-        self.velocity = 5000
-        self.turnSpeed = 3000
+        self.velocity = 400
+        self.turnSpeed = 200
         self.town = town
         self.route = None
         self.bearing = 1
@@ -148,7 +150,7 @@ class Robot(Rectangle):
         """
         Recur path runs a brute force traveling salesman solution.
 
-        It will return the fastest route around all of the shops in the order they
+        It will return the fastest route around all of the given shops in the order they
         will be navigated
         """
 
@@ -266,7 +268,7 @@ class Robot(Rectangle):
                 shortestPath = path[0]
 
             if time.time()-startTime>30:
-                break # Some paths take too long to check (it's O(n!) complexity) so the loop
+                break # Some paths take too lon g to check (it's O(n!) complexity) so the loop
                       # will stop if 30 seconds passes
 
         if shortestPath == None:

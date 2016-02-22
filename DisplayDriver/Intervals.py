@@ -1,11 +1,11 @@
-####
+# # # # # # # # #
 # Documentation start: 2/12/15
 #
 # 2/12/15:
 # Fixed start on an already existing sequence
 # not putting funcnum to -1
 #
-
+#
 
 class Sequence():
     

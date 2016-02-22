@@ -8,6 +8,8 @@ from DisplayDriver.Points import Point
 import random
 import Globals
 import math
+import ItemHandler as itemHandler
+
 
 FPS = 50
 
@@ -95,7 +97,7 @@ class Road(Line):
         #rotation = Point(start).getBearing(Point(end))
 
         #self.generateRepresentation(start, end)
-        Line.__init__(self, start, end, width = 1)
+        Line.__init__(self, start, end, width = 4, colour = [61, 61, 41])
 
     def destroy(self):
         self.removeNode()
@@ -110,25 +112,44 @@ class Shop(Rectangle):
     """
     def __init__(self,
                  pos,
-                 name = 'Shop'):
+                 category,
+                 items):
 
-        self.name = name
+        self.category = category
+        self.items = items
+        self.randomisePrices()
+
 
         Rectangle.__init__(self,
                            pos,
-                           size = [10,10])
+                           size = [random.randint(-15, 15) + 30, random.randint(-15, 15) + 30])
 
-    def setName(self, name):
-        self.name = name
+        self.text = OnscreenText(text = self.category, size = 15, pos = [pos[0]-15, pos[1]-40], colour = [255,0,0])
+
+    def randomisePrices(self):
+        modifier = 1 + (5-random.random()*10)
+
+        for item in self.items:
+            item.price *= modifier
+
+
+    def setCategory(self, name):
+        self.category = category
 
     def destroy(self):
         self.removeNode()
+        self.text.removeNode()
 
     def __repr__(self):
         return self.__str__()
 
     def __str__(self):
-        return "Shop(%s)" %(self.getPos())
+        return "Shop(%s, %s)" %(self.getPos(), self.category)
+
+    def render(self, renderer):
+        Rectangle.render(self, renderer)
+        self.text.render(renderer)
+
     #def render(self, renderer):
      #   Rectangle.render(self, renderer)
 
@@ -139,11 +160,13 @@ class Town(object):
     """
     def __init__(self,
                  roadSpecification = {},
-                 maxShops = 5):
+                 maxShops = 5,
+                 categories = []):
 
         self.maxShops = maxShops
         self.roads = []
         self.shopDict = roadSpecification
+        self.categories = categories
 
         if not roadSpecification:
             self.randomlyGenerate()
@@ -193,6 +216,7 @@ class Town(object):
         while len(smallestOrder)<len(toPoints)+take:
             smallestDistance = float("inf")
             smallestDistancePoint = None
+
             for otherPoint in toPoints:
                 if fromPoint.getPos().getDist(otherPoint.getPos())<smallestDistance and otherPoint!=fromPoint and otherPoint not in smallestOrder:
                     smallestDistancePoint = otherPoint
@@ -232,7 +256,9 @@ class Town(object):
                     if abs(shop.getX() - p.getX()) < Globals.RESOLUTION[0]/self.maxShops/2 or abs(shop.getY() - p.getY()) < Globals.RESOLUTION[0]/self.maxShops/2:
                         newShop = True
 
-            self.shopDict[Shop(p)]=[]
+            category = random.choice(itemHandler.getCategories())
+            items = itemHandler.getItemsFromCategory(category)
+            self.shopDict[Shop(p, category, items)]=[]
 
         """
         Then order all the points in order of distance
@@ -272,7 +298,7 @@ class Town(object):
         """
 
         self.roads = []
-        alreadyDone =[]
+        alreadyDone = []
         for shop in self.shopDict:
             for otherShop in self.shopDict[shop]:
                 if (otherShop, shop) not in alreadyDone:
@@ -300,11 +326,13 @@ class Town(object):
         return False
 
     def render(self, renderer):
+        for road in self.roads:
+            road.render(DisplayDriver.engine)\
+
         for shop in self.shopDict:
             shop.render(DisplayDriver.engine)
 
-        for road in self.roads:
-            road.render(DisplayDriver.engine)
+
 
     def destroy(self):
         for shop in self.shopDict:
@@ -316,9 +344,23 @@ class Town(object):
 class Simulation():
     def __init__(self):
         DisplayDriver.eventManager.bind(KEYDOWN, self.takeInput)
+        DisplayDriver.engine.graphics.setBackground([51,204,51])
+        itemHandler.init(False)
+
+        self.items = []
+
+        items = itemHandler.getItemsSorted(0, False)
+        for i in range(random.randint(3,15)):
+            item = random.choice(items)
+            items.remove(item)
+            self.items.append(item)
+
         self.taskId = None
         self.generate()
         self.start()
+
+    def getShoppingList(self):
+        return self.items
 
 
     def tick(self):
@@ -349,7 +391,7 @@ class Simulation():
         homeNode.setColour([0,255,0])
 
 
-        self.robot = Robot(homeNode, town = self.town)
+        self.robot = Robot(homeNode, town = self.town, shoppingList = self.getShoppingList())
         self.robot.render(DisplayDriver.engine)
 
         self.consumeText = OnscreenText(pos = [Globals.RESOLUTION[0]-200,0], text = '', size = 20)
@@ -366,15 +408,26 @@ class Simulation():
             self.reset()
 
     def reset(self):
-        self.consumeText.removeNode()
-        self.distanceText.removeNode()
-        self.robot.destroy()
-        self.town.destroy()
-        self.contraintsText.removeNode()
-        if self.taskId:
-            DisplayDriver.engine.removeTask(self.taskId)
-        self.generate()
-        self.start()
+        if self.robot.route:
+            self.robot.route.destroy()
+            self.robot.route = None
+
+        while not self.robot.route:
+            if self.taskId:
+                DisplayDriver.engine.removeTask(self.taskId)
+                self.taskId = None
+            self.consumeText.removeNode()
+            self.distanceText.removeNode()
+            self.robot.destroy()
+            self.town.destroy()
+            self.contraintsText.removeNode()
+
+            if self.taskId:
+                DisplayDriver.engine.removeTask(self.taskId)
+
+            self.generate()
+            self.start()
+
 
     def start(self):
         self.taskId = DisplayDriver.engine.addTask(self.tick)
