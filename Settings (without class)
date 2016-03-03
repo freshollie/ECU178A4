@@ -3,20 +3,22 @@ from tkinter import *
 
 window = Tk()
 
+root.resizable(width=FALSE, height=FALSE)
+
 #The Canvas
-canvas = Canvas(window, width=700, height= 500, bg='light blue')
+canvas = Canvas(window, width=700, height= 500, bg='#E0EBFF')
 canvas.pack()
 
 #The 'Settings' title
-settings = Label(window, text='Settings', font=30)
+settings = Label(window, text='Settings', font=("Helvetica", 28))
 settingsWindow = canvas.create_window(80,40, window = settings)
 
 #The 'Time Limit' label
-timeLimit = Label(window, text='Time Limit', font = 20)
+timeLimit = Label(window, text='Time Limit', font=("Helvetica", 20))
 timeLimitWindow = canvas.create_window(100,150, window = timeLimit)
 
 #The 'Main Menu' button
-mainMenu = Button(window, text='Main Menu', width=10)
+mainMenu = Button(window, text='Main Menu', font=("Helvetica", 16), bg='white', height=1, width=13)
 mainMenuWindow = canvas.create_window(600, 40, window = mainMenu)
 
 #The pink rectangle
