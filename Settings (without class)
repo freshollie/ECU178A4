@@ -3,7 +3,7 @@ from tkinter import *
 
 window = Tk()
 
-root.resizable(width=FALSE, height=FALSE)
+window.resizable(width=FALSE, height=FALSE)
 
 #The Canvas
 canvas = Canvas(window, width=700, height= 500, bg='#E0EBFF')
