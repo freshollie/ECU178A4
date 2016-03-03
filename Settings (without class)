@@ -42,13 +42,9 @@ counter = IntVar()
 def Decrease(event=None):
     counter.set(counter.get() - 1)
 
-if counter == 0:
-    raise 
-else:
-
-    value = Label(window, textvariable=counter)
-    valueWindow = canvas.create_window(550,150, window = value)
-    decreaseButton = Button(window, text="Decrease", command=Decrease, fg="red", bg = "white")
-    decreaseButtonWindow = canvas.create_window(500,150, window = decreaseButton)
+value = Label(window, textvariable=counter)
+valueWindow = canvas.create_window(550,150, window = value)
+decreaseButton = Button(window, text="Decrease", command=Decrease, fg="red", bg = "white")
+decreaseButtonWindow = canvas.create_window(500,150, window = decreaseButton)
 
 window.mainloop()
