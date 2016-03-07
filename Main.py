@@ -362,7 +362,6 @@ class Simulation():
     def getShoppingList(self):
         return self.items
 
-
     def tick(self):
         if not self.robot:
             return

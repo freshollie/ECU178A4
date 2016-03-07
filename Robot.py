@@ -72,11 +72,11 @@ class Robot(Rectangle):
 
         # Initialise the rectangle
         Rectangle.__init__(self,
-                           pos = homeNode.getPos(),
-                           size = [8,8],
-                           colour = [255, 0, 0])
+                           pos=homeNode.getPos(),
+                           size=[8,8],
+                           colour=[255, 0, 0])
 
-        self.shoppingList = []
+        self.shoppingList = shoppingList
         self.homeNode = homeNode
         self.distanceTraveled = 0
         self.fuelUsed = 0
@@ -98,7 +98,7 @@ class Robot(Rectangle):
         Set which way the robot is facing
         """
 
-        bearing = bearing % 360
+        bearing %= 360
 
         self.bearing = bearing
         self.setRotation(self.bearing)
