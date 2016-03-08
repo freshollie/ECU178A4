@@ -268,7 +268,7 @@ class Robot(Rectangle):
                 shortestPath = path[0]
 
             if time.time()-startTime>30:
-                break # Some paths take too lon g to check (it's O(n!) complexity) so the loop
+                break # Some paths take too long to check (it's O(n!) complexity) so the loop
                       # will stop if 30 seconds passes
 
         if shortestPath == None:
@@ -319,24 +319,24 @@ class Robot(Rectangle):
             # Trig works by finding the other 2 sides of the triangle
             # in this case X and Y from the hypotenuse the distance
 
-            if self.bearing<90:
+            if self.bearing < 90:
 
                 yPlus = -(math.cos(math.radians(self.bearing))*distance)
                 xPlus = math.sin(math.radians(self.bearing))*distance
 
-            elif self.bearing<180:
+            elif self.bearing < 180:
 
                 bearing = math.radians(self.bearing - 90)
                 xPlus = math.cos(bearing)*distance
                 yPlus = math.sin(bearing)*distance
 
-            elif self.bearing<270:
+            elif self.bearing< 270:
 
                 bearing = math.radians(self.bearing - 180)
                 xPlus = -math.sin(bearing)*distance
                 yPlus = math.cos(bearing)*distance
 
-            elif self.bearing<360:
+            elif self.bearing < 360:
 
                 bearing = math.radians(self.bearing - 270)
                 xPlus = - math.cos(bearing)*distance

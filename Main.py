@@ -13,31 +13,12 @@ import ItemHandler as itemHandler
 
 FPS = 50
 
-def dot(vA, vB):
-    return vA[0]*vB[0]+vA[1]*vB[1]
+def ang(p1, p2, p3):
+    x = Point(p1).getDist(Point(p3))
+    y = Point(p1).getDist(Point(p2))
+    z = Point(p2).getDist(Point(p3))
 
-def ang(p1, p2, p3, p4):
-    # Get nicer vector form
-    vA = [(p1[0]-p2[0]), (p1[1]-p2[1])]
-    vB = [(p3[0]-p4[0]), (p3[1]-p4[1])]
-    # Get dot prod
-    dot_prod = dot(vA, vB)
-    # Get magnitudes
-    magA = dot(vA, vA)**0.5
-    magB = dot(vB, vB)**0.5
-    # Get cosine value
-    cos_ = dot_prod/magA/magB
-    # Get angle in radians and then convert to degrees
-    angle = math.acos(dot_prod/magB/magA)
-    # Basically doing angle <- angle mod 360
-    ang_deg = math.degrees(angle)%360
-
-    if ang_deg-180>=0:
-        # As in if statement
-        return 360 - ang_deg
-    else:
-
-        return ang_deg
+    return math.degrees(math.acos((y**2+z**2-x**2)/(2*y*z)))
 
 def find_intersection(p0, p1, p2, p3):
     """
@@ -159,9 +140,9 @@ class Town(object):
     Town is graph made up of shops connecting to roads.
     """
     def __init__(self,
-                 roadSpecification = {},
-                 maxShops = 5,
-                 categories = []):
+                 roadSpecification={},
+                 maxShops=5,
+                 categories=[]):
 
         self.maxShops = maxShops
         self.roads = []
@@ -196,13 +177,16 @@ class Town(object):
                 a = float("inf")
 
                 if line[1] == otherShop.getPos():
-                    a = ang(line[0],line[1], otherShop.getPos(), shop.getPos())
+                    a = ang(line[0], otherShop.getPos(), shop.getPos())
+                elif line[1] == shop.getPos():
+                    a = ang(line[0], shop.getPos(), otherShop.getPos())
+                elif line[0] == otherShop.getPos():
+                    a = ang(line[1], otherShop.getPos(), shop.getPos())
+                elif line[0] == shop.getPos():
+                    a = ang(line[1], shop.getPos(), otherShop.getPos())
 
-                if a < 15:
-                    print(line, otherShop, shop)
-                    #Line(start = line[0], end = line[1], colour = [0,255,0]).render(DisplayDriver.engine)
-                    #Line(start = otherShop.getPos(), end = shop.getPos(), colour = [0,255,0]).render(DisplayDriver.engine)
-                    return True
+                if a < 30:
+                    return False
 
         return True
 
@@ -226,7 +210,6 @@ class Town(object):
                 smallestOrder.append(smallestDistancePoint)
 
         return smallestOrder
-
 
     def randomlyGenerate(self):
         """
@@ -281,10 +264,10 @@ class Town(object):
                         if self.notIntersect([shop.getPos(), otherShop.getPos()]) and self.notSmallAngle([shop.getPos(), otherShop.getPos()]):
                             self.shopDict[shop].append(otherShop)
                             self.shopDict[otherShop].append(shop)
+
                             shouldBreak = False
 
                     del orderedShopDict[shop][0]
-
 
         """
         Then order those points into order of distance for better searching
