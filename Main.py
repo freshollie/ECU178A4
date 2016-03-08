@@ -98,6 +98,7 @@ class Shop(Rectangle):
 
         self.category = category
         self.items = items
+        self.prices = {}
         self.randomisePrices()
 
 
@@ -111,11 +112,16 @@ class Shop(Rectangle):
         modifier = 1 + (5-random.random()*10)
 
         for item in self.items:
-            item.price *= modifier
-
+            self.prices[item] = item.price * modifier
 
     def setCategory(self, name):
-        self.category = category
+        self.category = name
+
+    def getPrice(self, item):
+        return self.prices
+
+    def getItems(self):
+        return self.items
 
     def destroy(self):
         self.removeNode()
@@ -131,8 +137,7 @@ class Shop(Rectangle):
         Rectangle.render(self, renderer)
         self.text.render(renderer)
 
-    #def render(self, renderer):
-     #   Rectangle.render(self, renderer)
+
 
 
 class Town(object):
