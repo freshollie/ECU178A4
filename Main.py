@@ -261,7 +261,7 @@ class Town(object):
                         newShop = True
 
             category = random.choice(itemHandler.getCategories())
-            items = itemHandler.getItemsFromCategory(category)
+            items = itemHandler.getItemsWhere(1, category)
             self.shopDict[Shop(p, category, items)] = []
 
         """
@@ -360,7 +360,7 @@ class Simulation():
         if not items:
             self.items = {}
 
-            items = itemHandler.getItemsSorted(0, False)
+            items = itemHandler.getItemsSorted(0)
 
             for i in range(random.randint(3, 15)):
                 item = random.choice(items)
