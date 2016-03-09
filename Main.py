@@ -66,6 +66,7 @@ def find_intersection(p0, p1, p2, p3):
     if (round(intersection_point[0], 0), round(intersection_point[1], 0)) not in roundedPoints:
         return intersection_point
 
+
 class Road(Line):
     """
     Road is the representation of a straight road in the town.
@@ -82,6 +83,7 @@ class Road(Line):
 
     def render(self, renderer):
         Line.render(self, renderer)
+
 
 class Shop(Rectangle):
     """
@@ -190,7 +192,7 @@ class Town(object):
 
     def notSmallAngle(self, line):
         """
-        Returns true if the road isnt at a really small angle with another road
+        Returns true if the road isn't at a really small angle with another road
         """
 
         for shop in self.shopDict:
@@ -254,7 +256,7 @@ class Town(object):
 
                 newShop = False
 
-                #Make sure intersections are distenced
+                # Make sure intersections are distenced
 
                 for shop in self.shopDict:
                     if abs(shop.getX() - p.getX()) < Globals.RESOLUTION[0]/self.maxShops/2 or abs(shop.getY() - p.getY()) < Globals.RESOLUTION[0]/self.maxShops/2:
@@ -382,7 +384,7 @@ class Simulation():
                 return
 
             if self.robot.status == "Finished":
-                Sequence(DisplayDriver.engine, Wait(2), Func(self.reset)).start()
+                Sequence(DisplayDriver.engine, Wait(2/SIMSPEED), Func(self.reset)).start()
                 DisplayDriver.engine.removeTask(self.taskId)
                 self.taskId = None
                 return
@@ -416,6 +418,10 @@ class Simulation():
     def takeInput(self, event):
         if event.key == K_a:
             self.reset()
+
+    def finished(self):
+        OnscreenText(text='FINISHED', size=40, pos=[0,Globals.RESOLUTION[1]/2]).render(DisplayDriver.engine)
+
 
     def reset(self):
         if self.robot.route:
