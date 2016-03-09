@@ -352,7 +352,7 @@ class Town(object):
 
 
 class Simulation():
-    def __init__(self, items=[]):
+    def __init__(self, items={}):
         DisplayDriver.eventManager.bind(KEYDOWN, self.takeInput)
         DisplayDriver.engine.graphics.setBackground([51, 204, 51])
         itemHandler.init(False)
@@ -442,11 +442,17 @@ class Simulation():
     def start(self):
         self.taskId = DisplayDriver.engine.addTask(self.tick)
 
-sim = Simulation()
+def main(shoppingList={}, simulationSpeed = 1, timeLimit = 0):
 
-DisplayDriver.engine.setFrameRate(Globals.FPS)
-DisplayDriver.engine.graphics.setRes(Globals.RESOLUTION)
+    sim = Simulation()
+
+    DisplayDriver.engine.setFrameRate(Globals.FPS)
+    DisplayDriver.engine.graphics.setRes(Globals.RESOLUTION)
 
 
-DisplayDriver.init()
+    DisplayDriver.init()
+
+if __name__ == "__main__":
+    main()
+
 
