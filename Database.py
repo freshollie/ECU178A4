@@ -15,7 +15,7 @@ def init():
     itemFile = open('itemsraw.txt')
 
     for iteration, line in enumerate(itemFile):
-        if not(line.startswith("#")):
+        if not(line.startswith("#") or line.startswith(' ') or len(line) < 2):
             try:
                 iformat = line.strip("\n").split(", ")
                 
