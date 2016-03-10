@@ -1,7 +1,15 @@
 import sys
 from tkinter import *
 
+counter = None
+
 def main(window=None):
+
+    global counter
+
+    def Close():
+        window.destroy()
+    
     if window == None:
         window = Tk()
 
@@ -20,7 +28,7 @@ def main(window=None):
     timeLimitWindow = canvas.create_window(100,150, window = timeLimit)
 
     #The 'Main Menu' button
-    mainMenu = Button(window, text='Main Menu', font=("Helvetica", 16), bg='white', height=1, width=13)
+    mainMenu = Button(window, text='Main Menu', command = Close, font=("Helvetica", 16), bg='white', height=1, width=13)
     mainMenuWindow = canvas.create_window(600, 40, window = mainMenu)
 
     #The pink rectangle
@@ -49,5 +57,3 @@ def main(window=None):
     valueWindow = canvas.create_window(550,150, window = value)
     decreaseButton = Button(window, text="Decrease", command=Decrease, fg="red", bg = "white")
     decreaseButtonWindow = canvas.create_window(500,150, window = decreaseButton)
-
-    
