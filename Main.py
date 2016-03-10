@@ -354,27 +354,29 @@ class Town(object):
 
 
 class Simulation():
-    def __init__(self, items={}):
+    def __init__(self):
         DisplayDriver.eventManager.bind(KEYDOWN, self.takeInput)
         DisplayDriver.engine.graphics.setBackground([51, 204, 51])
         itemHandler.init(False)
 
-        if not items:
-            self.items = {}
+        self.items = {}
 
-            items = itemHandler.getItemsSorted(0)
+        items = itemHandler.getItemsSorted(0)
 
-            for i in range(random.randint(3, 15)):
-                item = random.choice(items)
-                items.remove(item)
-                self.items[item] = random.randint(1, 10)
-        else:
-            self.items = items
+        for i in range(random.randint(3, 15)):
+            item = random.choice(items)
+            items.remove(item)
+            self.items[item] = random.randint(1, 10)
 
         self.taskId = None
+
+    def run(self, items = {}):
+        if items:
+            self.items = items
+            
         self.generate()
         self.start()
-
+    
     def getShoppingList(self):
         return self.items
 
@@ -384,7 +386,7 @@ class Simulation():
                 return
 
             if self.robot.status == "Finished":
-                Sequence(DisplayDriver.engine, Wait(2/SIMSPEED), Func(self.reset)).start()
+                Sequence(DisplayDriver.engine, Wait(2/SIMSPEED), Func(DisplayDriver.engine.stop, None)).start()
                 DisplayDriver.engine.removeTask(self.taskId)
                 self.taskId = None
                 return
@@ -448,9 +450,11 @@ class Simulation():
     def start(self):
         self.taskId = DisplayDriver.engine.addTask(self.tick)
 
+sim = Simulation()
+
 def main(shoppingList={}, simulationSpeed = 1, timeLimit = 0):
 
-    sim = Simulation()
+    sim.run(shoppingList)
 
     DisplayDriver.engine.setFrameRate(Globals.FPS)
     DisplayDriver.engine.graphics.setRes(Globals.RESOLUTION)
@@ -460,5 +464,3 @@ def main(shoppingList={}, simulationSpeed = 1, timeLimit = 0):
 
 if __name__ == "__main__":
     main()
-
-
