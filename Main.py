@@ -367,13 +367,14 @@ class Simulation():
             item = random.choice(items)
             items.remove(item)
             self.items[item] = random.randint(1, 10)
+        self.results = items
 
         self.taskId = None
 
     def run(self, items = {}):
         if items:
             self.items = items
-            
+        self.results = items
         self.generate()
         self.start()
     
@@ -450,17 +451,19 @@ class Simulation():
     def start(self):
         self.taskId = DisplayDriver.engine.addTask(self.tick)
 
-sim = Simulation()
 
 def main(shoppingList={}, simulationSpeed = 1, timeLimit = 0):
 
+    sim = Simulation()
+
     sim.run(shoppingList)
-
-    DisplayDriver.engine.setFrameRate(Globals.FPS)
-    DisplayDriver.engine.graphics.setRes(Globals.RESOLUTION)
-
+    if not DisplayDriver.engine.graphics.screen:
+        DisplayDriver.engine.setFrameRate(Globals.FPS)
+        DisplayDriver.engine.graphics.setRes(Globals.RESOLUTION)
 
     DisplayDriver.init()
+
+    return sim.results
 
 if __name__ == "__main__":
     main()

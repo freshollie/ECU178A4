@@ -3,6 +3,12 @@ try:
     import Main
 except ImportError:
     print('Main.py not found.')
+
+try:
+    import GuiResults
+except ImportError:
+    print('GuiResults.py not found')
+
 import sys
 from tkinter import *
 
@@ -55,7 +61,7 @@ class Gui(Tk):
         self.shoppingListText = Text(self.shoppingListFrame, state = 'disable', width = 20)
         self.shoppingListText.pack(fill = BOTH, expand = True)
 
-        self.startSimulationButton = Button(self.shoppingListFrame, text = 'Start Simulation', command = lambda items = self.shoppingList: Main.main(items))
+        self.startSimulationButton = Button(self.shoppingListFrame, text = 'Start Simulation', command = self.runSimulation)
         self.startSimulationButton.pack(fill = BOTH)
 
         self.frameDisplay(0)
@@ -143,6 +149,7 @@ class Gui(Tk):
                         button['foreground'] = 'black'
                         
                     button.pack(side = LEFT, fill = BOTH, expand = True)
+
                 except(IndexError):
                     button = Button(frames[int(i / 3)], text = '?', width = 3)
                     button['state'] = 'disable'
@@ -181,6 +188,11 @@ class Gui(Tk):
         self.sortTypeButton['text'] = Gui.__typeNames[self.sortType]
         
         self.itemIndex = 0
+
+    def runSimulation(self):
+        results = Main.main(self.shoppingList)
+        GuiResults.main(results)
+
         
     def changeSortOrder(self):
         self.sortOrder = not(self.sortOrder)

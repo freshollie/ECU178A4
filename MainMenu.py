@@ -16,8 +16,6 @@ class MainMenu:
         Button(self.root, text='Run Simulation', font=("Helvetica", 16), bg='white', height=1, width=13, command = runSimulation).pack(pady=80)
         Button(self.root, text='Settings', font=("Helvetica", 16), bg='white', height=1, width=13, command = runSettings).pack(side=TOP)
 
-        
-        
 
 def main():
     root.resizable(width=FALSE, height=FALSE)
@@ -34,7 +32,6 @@ def main():
 
 
 def runSimulation():
-    print(Settings.counter.get())
     GuiShoppingList.main()
 
 def runSettings():

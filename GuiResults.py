@@ -66,7 +66,7 @@ class Gui(Tk):
         self.shoppingListText.delete('1.0', END)
         
         for item in ItemHandler.getItemsSorted(self.sortType, items = self.items, reverse = self.sortOrder):
-            self.shoppingListText.insert('end', str(items[item]) + ' x ' + str(item) + '\n')
+            self.shoppingListText.insert('end', str(self.items[item]) + ' x ' + str(item) + '\n')
             
         self.shoppingListText['state'] = 'disable'
         

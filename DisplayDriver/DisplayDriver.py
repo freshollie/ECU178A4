@@ -20,7 +20,8 @@ class Graphics(object):
         '''
         The initialisation contains some properties of the engine
         '''
-        self.screen=pygame.display.set_mode(resolution)
+
+        self.screen = None
         self.entityList=[] # Creates an empty entity list
         self.axis2index={'x':0,'y':1} # Unused
         self.backgroundLetter=' ' # Setting what the background will look like
@@ -301,14 +302,19 @@ debugger.render(engine=engine)
 debugger.toggle()
 
 stickerManager=Debug.StickerManager()
-
+firstInit = True
 def init():
+    global firstInit
     '''
     Starts DisplayDriver and initialises pygame,
     can be called after all tasks have been
     added to DisplayDriver so that they are ready
     to upon startup
     '''
-        
-    pygame.init()
+    if firstInit:
+        pygame.init()
+        firstInit = False
+
+    if not engine.graphics.screen:
+        engine.graphics.screen = pygame.display.set_mode(RES)
     engine.start()
