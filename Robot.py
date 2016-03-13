@@ -247,15 +247,18 @@ class Robot(Rectangle):
 
         elif self.status == "Buy":
             self.status = "Buying"
-            self.log("Buying items in %s" %(shop.getCategory()))
-
+            
             buyingItems = []
 
             for item in self.cheapestItems:
                 if self.cheapestItems[item] == shop:
-                    self.log("Buying: %s" %(item.name))
                     buyingItems.append(item)
-                    self.inventory[item] = self.shoppingList[item]
+                    self.inventory[item] = [self.shoppingList[item], shop]
+
+            if buyingItems:
+                self.log("Buying items in %s" %(shop.getCategory()))
+                for item in buyingItems:
+                    self.log("Buying: %s" %(item.name))
 
             self.visitLength = len(buyingItems) * Globals.FPS/10
 
@@ -459,6 +462,3 @@ class Robot(Rectangle):
             self.route.render(renderer)
 
         Rectangle.render(self, renderer)
-
-
-
