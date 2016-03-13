@@ -236,6 +236,7 @@ class Gui(Tk):
         
         
 def main(*items):
+    ItemHandler.init(False)
     Gui().mainloop()
 
 if __name__ == '__main__':
