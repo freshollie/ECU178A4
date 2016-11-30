@@ -17,3 +17,6 @@ The items are selected using a gui item selector
 
 The project output was written in pygame with a wrapper that I wrote called "DisplayDriver" (http://www.github.com/freshollie/DisplayDriver) to help with displaying anything on the screen.
 
+## Working video
+
+[![Working visualisation](https://i.ytimg.com/vi/N3c8U7Cg5E8/0.jpg)](https://www.youtube.com/watch?v=N3c8U7Cg5E8)
