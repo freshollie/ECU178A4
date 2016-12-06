@@ -11,6 +11,7 @@ import math
 import ItemHandler as itemHandler
 
 SIMSPEED = 1
+<<<<<<< HEAD
 
 
 FPS = 50
@@ -21,6 +22,17 @@ def ang(points):
             y = points[0].getDist(points[1])
             z = points[1].getDist(points[2])
             return math.degrees(math.acos((x**2 - y**2 - z**2)/(-2.0 * z * y)))
+=======
+
+FPS = 50
+
+def ang(p1, p2, p3):
+    x = Point(p1).getDist(Point(p3))
+    y = Point(p1).getDist(Point(p2))
+    z = Point(p2).getDist(Point(p3))
+
+    return math.degrees(math.acos((y**2+z**2-x**2)/(2*y*z)))
+>>>>>>> dev
 
 def find_intersection(p0, p1, p2, p3):
     """
@@ -67,6 +79,7 @@ def find_intersection(p0, p1, p2, p3):
     if (round(intersection_point[0], 0), round(intersection_point[1], 0)) not in roundedPoints:
         return intersection_point
 
+
 class Road(Line):
     """
     Road is the representation of a straight road in the town.
@@ -76,10 +89,6 @@ class Road(Line):
                  start,
                  end):
 
-        #size = [10, Point(start).getDist(end)]
-        #rotation = Point(start).getBearing(Point(end))
-
-        #self.generateRepresentation(start, end)
         Line.__init__(self, start, end, width = 4, colour = [61, 61, 41])
 
     def destroy(self):
@@ -87,6 +96,7 @@ class Road(Line):
 
     def render(self, renderer):
         Line.render(self, renderer)
+
 
 class Shop(Rectangle):
     """
@@ -99,29 +109,52 @@ class Shop(Rectangle):
                  items):
 
         self.category = category
+<<<<<<< HEAD
         self.items = {}
         self.randomisePrices(items)
         self.home = False
-
+=======
+        self.items = items
+        self.home = False
+        self.prices = {}
+        self.randomisePrices()
+>>>>>>> dev
 
         Rectangle.__init__(self,
                            pos,
-                           size = [random.randint(-15, 15) + 30, random.randint(-15, 15) + 30])
+                           size = [random.randint(-15, 15) + 30,
+                                   random.randint(-15, 15) + 30])
 
-        self.text = OnscreenText(text = self.category, size = 15, pos = [pos[0]-15, pos[1]-40], colour = [255,0,0])
+        self.text = OnscreenText(text=self.category,
+                                 size=15,
+                                 pos=[pos[0]-15, pos[1]-40],
+                                 colour=[255,0,0])
 
     def randomisePrices(self, items):
         modifier = 1 + (5-random.random()*10)
 
-        for item in items:
-            self.items[item] = round(item.price * modifier, 2)
+        for item in self.items:
+            self.prices[item] = item.price * modifier
+
+    def setCategory(self, name):
+        self.category = name
+        self.text.setText(name)
+
+    def setHome(self):
+        self.setColour([255,255,0])
+        self.setCategory('Home')
+        self.home = True
+        self.items = None
+        self.prices = None
+
+    def isHome(self):
+        return self.home
+
+    def getPrice(self, item):
+        return self.prices[item]
 
     def getItems(self):
         return self.items
-
-    def setCategory(self, category):
-        self.category = category
-        self.text.setText(self.category)
 
     def getCategory(self):
         return self.category
@@ -145,25 +178,23 @@ class Shop(Rectangle):
     def __str__(self):
         if not self.isHome():
             return "Shop(%s, %s)" %(self.getPos(), self.category)
-        else:
-            return "Home(%s, %s)" %(self.getPos(), self.category)
+        
+        return "Home(%s)" %(self.getPos())
 
     def render(self, renderer):
         Rectangle.render(self, renderer)
         self.text.render(renderer)
-
-    #def render(self, renderer):
-     #   Rectangle.render(self, renderer)
 
 
 class Town(object):
     """
     Town is graph made up of shops connecting to roads.
     """
+
     def __init__(self,
-                 roadSpecification = {},
-                 maxShops = 5,
-                 categories = []):
+                 roadSpecification={},
+                 maxShops=5,
+                 categories=[]):
 
         self.maxShops = maxShops
         self.roads = []
@@ -199,21 +230,15 @@ class Town(object):
                 a = float("inf")
 
                 if line[1] == otherShop.getPos():
-                    a = ang([line[0], otherShop.getPos(), shop.getPos()])
-
-                elif line[0] == otherShop.getPos():
-                    a = ang([line[1], otherShop.getPos(), shop.getPos()])
-
-                elif line[0] == shop.getPos():
-                    a = ang([line[1], shop.getPos(), otherShop.getPos()])
-
+                    a = ang(line[0], otherShop.getPos(), shop.getPos())
                 elif line[1] == shop.getPos():
-                    a = ang([line[0], shop.getPos(), otherShop.getPos()])
+                    a = ang(line[0], shop.getPos(), otherShop.getPos())
+                elif line[0] == otherShop.getPos():
+                    a = ang(line[1], otherShop.getPos(), shop.getPos())
+                elif line[0] == shop.getPos():
+                    a = ang(line[1], shop.getPos(), otherShop.getPos())
 
-                if a < 30:
-                    print(line, otherShop, shop)
-                    #Line(start = line[0], end = line[1], colour = [0,255,0]).render(DisplayDriver.engine)
-                    #Line(start = otherShop.getPos(), end = shop.getPos(), colour = [0,255,0]).render(DisplayDriver.engine)
+                if a < 15:
                     return False
 
         return True
@@ -239,7 +264,6 @@ class Town(object):
 
         return smallestOrder
 
-
     def randomlyGenerate(self):
         """
         Randomly generates a graph with the number with max number of shop where all shops are connected to their closest
@@ -262,15 +286,15 @@ class Town(object):
 
                 newShop = False
 
-                #Make sure intersections are distenced
+                # Make sure intersections are distenced
 
                 for shop in self.shopDict:
                     if abs(shop.getX() - p.getX()) < Globals.RESOLUTION[0]/self.maxShops/2 or abs(shop.getY() - p.getY()) < Globals.RESOLUTION[0]/self.maxShops/2:
                         newShop = True
 
             category = random.choice(itemHandler.getCategories())
-            items = itemHandler.getItemsFromCategory(category)
-            self.shopDict[Shop(p, category, items)]=[]
+            items = itemHandler.getItemsWhere(1, category)
+            self.shopDict[Shop(p, category, items)] = []
 
         """
         Then order all the points in order of distance
@@ -293,10 +317,10 @@ class Town(object):
                         if self.notIntersect([shop.getPos(), otherShop.getPos()]) and self.notSmallAngle([shop.getPos(), otherShop.getPos()]):
                             self.shopDict[shop].append(otherShop)
                             self.shopDict[otherShop].append(shop)
+
                             shouldBreak = False
 
                     del orderedShopDict[shop][0]
-
 
         """
         Then order those points into order of distance for better searching
@@ -317,8 +341,13 @@ class Town(object):
                     self.roads.append(Road(start = shop.getPos(), end = otherShop.getPos()))
                     alreadyDone.append((shop, otherShop))
 
-        self.home = random.choice(list(self.shopDict.keys()))
-        self.home.setHome()
+        homeNode = random.choice(list(self.shopDict.keys()))
+        homeNode.setHome()
+
+    def getHome(self):
+        for shop in self.shopDict:
+            if shop.isHome():
+                return shop
 
     def getConnections(self, node):
         """
@@ -359,23 +388,30 @@ class Town(object):
 class Simulation:
     def __init__(self, items = {}):
         DisplayDriver.eventManager.bind(KEYDOWN, self.takeInput)
-        DisplayDriver.engine.graphics.setBackground([51,204,51])
+        DisplayDriver.engine.graphics.setBackground([51, 204, 51])
         itemHandler.init(False)
         if not items:
             self.items = {}
 
-            items = itemHandler.getItemsSorted(0, False)
-            for i in range(random.randint(3,15)):
-                item = random.choice(items)
-                items.remove(item)
-                self.items[item] = random.randint(1,3)
-        else:
-            self.items = items
+        self.items = {}
+
+        items = itemHandler.getItemsSorted(0)
+
+        for i in range(random.randint(3, 15)):
+            item = random.choice(items)
+            items.remove(item)
+            self.items[item] = random.randint(1, 10)
+        self.results = items
 
         self.taskId = None
+
+    def run(self, items = {}):
+        if items:
+            self.items = items
+        self.results = items
         self.generate()
         self.start()
-
+    
     def getShoppingList(self):
         return self.items
 
@@ -385,6 +421,9 @@ class Simulation:
                 return
 
             if self.robot.status == "Finished":
+                
+                Sequence(DisplayDriver.engine, Wait(2/SIMSPEED), Func(DisplayDriver.engine.stop, None)).start()
+                
                 DisplayDriver.engine.removeTask(self.taskId)
                 self.taskId = None
                 return
@@ -435,6 +474,10 @@ class Simulation:
 
         if self.taskId:
             DisplayDriver.engine.removeTask(self.taskId)
+            
+    def finished(self):
+        OnscreenText(text='FINISHED', size=40, pos=[0,Globals.RESOLUTION[1]/2]).render(DisplayDriver.engine)
+
 
     def reset(self):
         if self.robot.route:
@@ -451,16 +494,19 @@ class Simulation:
     def start(self):
         self.taskId = DisplayDriver.engine.addTask(self.tick)
 
-def main(shoppingList = {}):
 
-    sim = Simulation(shoppingList)
+def main(shoppingList={}, simulationSpeed = 1, timeLimit = 0):
 
-    DisplayDriver.engine.setFrameRate(Globals.FPS)
-    DisplayDriver.engine.graphics.setRes(Globals.RESOLUTION)
+    sim = Simulation()
 
+    sim.run(shoppingList)
+    if not DisplayDriver.engine.graphics.screen:
+        DisplayDriver.engine.setFrameRate(Globals.FPS)
+        DisplayDriver.engine.graphics.setRes(Globals.RESOLUTION)
 
     DisplayDriver.init()
 
+    return sim.results
+
 if __name__ == "__main__":
     main()
-

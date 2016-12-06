@@ -76,13 +76,17 @@ class Robot(Rectangle):
                  shoppingList):
 
         # Initialise the rectangle
+        homeNode = town.getHome()
+
         Rectangle.__init__(self,
-                           pos = town.getHome().getPos(),
-                           size = [8,8],
-                           colour = [255, 0, 0])
+                           pos=homeNode.getPos(),
+                           size=[8,8],
+                           colour=[255, 0, 0])
 
         self.shoppingList = shoppingList
-        self.homeNode = town.getHome()
+        self.cheapestItems = {}
+
+        self.homeNode = homeNode
         self.distanceTraveled = 0
         self.fuelUsed = 0
         self.velocity = 400
@@ -93,13 +97,11 @@ class Robot(Rectangle):
         self.angle = 0
         self.setBearing(0)
         self.targetShop = []
+        self.inventory = {}
         self.calcPath()
 
-        self.timeInside = None
-        self.visitTime = None
-
-        self.currentCheapList = {}
-        self.bag = {}
+        self.timeInShop = 0
+        self.visitLength = 0
 
         self.status = "Hunt"
         self.shopsVisited = []
@@ -113,7 +115,7 @@ class Robot(Rectangle):
         Set which way the robot is facing
         """
 
-        bearing = bearing % 360
+        bearing %= 360
 
         self.bearing = bearing
         self.setRotation(self.bearing)
@@ -133,7 +135,7 @@ class Robot(Rectangle):
         Turns at the correct turn speed towards the given target bearing
         """
 
-        if abs(self.bearing - targetBearing)<(self.turnSpeed/Globals.FPS):
+        if abs(self.bearing - targetBearing) < (self.turnSpeed/Globals.FPS):
             # If the angle it needs to turn is less than it would turn this tick
             self.setBearing(targetBearing)
             return
@@ -239,36 +241,43 @@ class Robot(Rectangle):
         print(text)
 
     def visitShop(self, shop):
-        self.timeInside = 0
+        self.timeInShop = 0
 
         if self.status == "Hunt":
-            self.visitTime = len(shop.getItems())*10
             self.status = "Browsing"
+            self.log("Looking for items in %s" %(shop.getCategory()))
+            self.visitLength = len(shop.getItems()) * Globals.FPS/10
 
-            for item, price in shop.getItems().items():
+            for item in shop.getItems():
                 if item in self.shoppingList:
-                    if item in self.currentCheapList:
-                        if price > self.currentCheapList[item][0]:
+                    if item in self.cheapestItems:
+                        if shop.getPrice(item) >= self.cheapestItems[item].getPrice(item):
                             continue
+                    self.cheapestItems[item] = shop
 
-                    self.currentCheapList[item] = [price, shop]
+        elif self.status == "Buy":
+            self.status = "Buying"
+            
+            buyingItems = []
 
-            self.log("Visiting %s" %(shop.getCategory()))
+            for item in self.cheapestItems:
+                if self.cheapestItems[item] == shop:
+                    buyingItems.append(item)
+                    self.inventory[item] = [self.shoppingList[item], shop]
 
-        else:
-            for item in self.currentCheapList:
-                if self.currentCheapList[item][1] == shop:
-                    self.log("Buying %s" %(item))
+            if buyingItems:
+                self.log("Buying items in %s" %(shop.getCategory()))
+                for item in buyingItems:
+                    self.log("Buying: %s" %(item.name))
 
+            self.visitLength = len(buyingItems) * Globals.FPS/10
 
     def getShopsToVisit(self):
-        shopList = []
+        toVisit = []
+        for item in self.cheapestItems:
+            toVisit.append(self.cheapestItems[item])
 
-        for item in self.currentCheapList:
-            shopList.append(self.currentCheapList[item][1])
-
-        return list(set(shopList))
-
+        return list(set(toVisit))
 
     def getRandomShopsToVisit(self):
         newToVisit = []
@@ -286,7 +295,7 @@ class Robot(Rectangle):
 
         return toVisit
 
-    def calcPath(self, toVisit = [], lastMatters = False):
+    def calcPath(self, toVisit=[], lastMatters=False):
         """
         Finds and stores a path around the town to the given shops.
         if no shops are given then a route around the town is found.
@@ -317,11 +326,11 @@ class Robot(Rectangle):
                 shortestLength = path[1]
                 shortestPath = path[0]
 
-            if time.time()-startTime>30:
-                break # Some paths take too lon g to check (it's O(n!) complexity) so the loop
+            if time.time() - startTime > 30:
+                break # Some paths take too long to check (it's O(n!) complexity) so the loop
                       # will stop if 30 seconds passes
 
-        if shortestPath == None:
+        if shortestPath is None:
             return
 
         if self.route:
@@ -363,30 +372,29 @@ class Robot(Rectangle):
             xPlus = -distance
             yPlus = 0
 
-
         else:
             # Do the correct trig calculation based on what the bearing is.
             # Trig works by finding the other 2 sides of the triangle
             # in this case X and Y from the hypotenuse the distance
 
-            if self.bearing<90:
+            if self.bearing < 90:
 
                 yPlus = -(math.cos(math.radians(self.bearing))*distance)
                 xPlus = math.sin(math.radians(self.bearing))*distance
 
-            elif self.bearing<180:
+            elif self.bearing < 180:
 
                 bearing = math.radians(self.bearing - 90)
-                xPlus = math.cos(bearing)*distance
+                xPlus = math.cos(bearing) * distance
                 yPlus = math.sin(bearing)*distance
 
-            elif self.bearing<270:
+            elif self.bearing< 270:
 
                 bearing = math.radians(self.bearing - 180)
                 xPlus = -math.sin(bearing)*distance
                 yPlus = math.cos(bearing)*distance
 
-            elif self.bearing<360:
+            elif self.bearing < 360:
 
                 bearing = math.radians(self.bearing - 270)
                 xPlus = - math.cos(bearing)*distance
@@ -406,11 +414,14 @@ class Robot(Rectangle):
 
             if self.targetShop: # If there is a current targetShop
 
-                if self.getPos().getDist(self.targetShop.getPos())<(self.velocity*Globals.PixelsPerMetre/Globals.FPS):
+                if self.getPos().getDist(self.targetShop.getPos()) < (self.velocity*Globals.PixelsPerMetre/Globals.FPS):
                     # If the distance to the shop is so small that it will go past it next movement
                     # Then move to the shop
                     self.consumeFuel(self.getPos().getDist(self.targetShop.getPos()))
                     self.setPos(self.targetShop.getPos())
+                    if not self.targetShop.isHome():
+                        self.visitShop(self.targetShop)
+
                     if not self.targetShop.isHome():
                         self.visitShop(self.targetShop)
 
@@ -430,12 +441,12 @@ class Robot(Rectangle):
 
                 if self.status == "Hunt":
                     newShops = self.getShopsToVisit()
-                    self.log("Buying from: ")
+                    
                     for shop in newShops:
-                        self.log(shop)
-                        shop.setColour([0,0,255])
+                        shop.setColour([0, 0, 255])
+                        
                     newShops.append(self.homeNode)
-                    self.calcPath(newShops, lastMatters = True)
+                    self.calcPath(newShops, lastMatters=True)
                     self.targetShop = self.route.getNextPoint()
                     self.status = "Buy"
 
@@ -445,16 +456,15 @@ class Robot(Rectangle):
 
             self.turn(self.targetShop.getPos().getBearing(self.getPos())) # Turn towards the given bearing
 
-        elif self.status == "Browsing" or self.status == "Shopping":
-            if self.timeInside > self.visitTime:
-                if self.status == "Browsing":
-                    self.status = "Hunt"
-                    self.log("Checked Items")
+        elif self.status == "Browsing":
+            self.timeInShop += 1
+            if self.timeInShop >= self.visitLength:
+                self.status = "Hunt"
 
-                elif self.status == "Shopping":
-                    self.status = "Buy"
-                    self.log("Bought items")
-            self.timeInside += 1
+        elif self.status == "Buying":
+            self.timeInShop += 1
+            if self.timeInShop >= self.visitLength:
+                self.status = "Buy"
 
     def destroy(self):
         if self.route:
@@ -466,6 +476,3 @@ class Robot(Rectangle):
             self.route.render(renderer)
 
         Rectangle.render(self, renderer)
-
-
-
